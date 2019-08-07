@@ -1,5 +1,5 @@
+// TODO: provide http request and storage via class constructor
 import httpRequest from './http';
-
 import storage from './storage';
 
 //TODO: implement key extractor
