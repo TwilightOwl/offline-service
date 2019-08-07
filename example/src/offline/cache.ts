@@ -54,13 +54,7 @@ type RequestFunction = (url: RequestInfo, params?: RequestInit) => Promise<Reque
 type CacheThenNetworkRequestFunction = (url: RequestInfo, params?: RequestInit) => Promise<CacheThenNetworkRequestResult>;
 
 const NetworkOnlyRequest: RequestFunction = async (...args) => {
-    try {
-        const response = await httpRequest(...args);
-        return { response }
-    } catch (error) {
-        throw error
-    }
-    // return ({ response: await httpRequest(...args) }) as RequestResult;
+    return ({ response: await httpRequest(...args) }) as RequestResult;
 }
 
 const CacheOnlyRequest: RequestFunction = async (url, params) => {
@@ -76,7 +70,6 @@ const CacheOnlyRequest: RequestFunction = async (url, params) => {
 
 const NetworkFallingBackToCacheRequest: RequestFunction = async (url, params) => {
     try {
-        // const response = await httpRequest(url, params);
         const { response } = await NetworkOnlyRequest(url, params);
         if (response.ok) {
             return { response }
@@ -109,7 +102,6 @@ const CacheFallingBackToNetworkRequest: RequestFunction = async (url, params) =>
             throw "The cache doesn't exist or expired but network request has been faild"
         }
     }
-    // return ({ response: await httpRequest(url, params) }) as RequestResult;
 }
 
 // it returns cached data and promise for network request
@@ -119,7 +111,6 @@ const CacheThenNetworkRequest: CacheThenNetworkRequestFunction = async (url, par
     } catch (error) {
         return { cacheStatus: CacheStatus.DoesNotExist }
     }
-    // return ({ response: await httpRequest(url, params) }) as RequestResult;
 }
 
 enum CachingResult {
@@ -224,17 +215,3 @@ const request: CustomRequest = async (url: RequestInfo, params: RequestInitWithC
 }
 
 export default request;
-
-// export const receive = async (url: string, data: any) => {
-//     const cacheKey = getCacheKey(url, data);
-//     const cached = await storage.retrieve(cacheKey);
-//     if (cached === undefined) {
-//         const result = await httpRequest(url, data);
-//         // unblocking promise
-//         storage.add(cacheKey, result);
-//         return result;
-//     } else {
-//         return cached
-//     }
-// }
-
