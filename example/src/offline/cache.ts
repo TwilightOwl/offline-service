@@ -2,8 +2,8 @@
 import httpRequest from './http';
 import storage from './storage';
 
-//TODO: implement key extractor
-const getCacheKey = (url: RequestInfo, params?: RequestInit) => String(url).slice(1);
+// //TODO: implement key extractor
+// const getCacheKey = (url: RequestInfo, params?: RequestInit) => String(url).slice(1);
 
 export enum RefreshCacheStrategy {
     RefreshWhenExpired,
@@ -215,3 +215,33 @@ const request: CustomRequest = async (url: RequestInfo, params: RequestInitWithC
 }
 
 export default request;
+
+type HttpRequest = (url: RequestInfo, data?: RequestInit) => Promise<Response>;
+
+interface Storage {
+    //TODO: return result 
+    set: (key: string, data: any) => Promise<any>,
+    get: (key: string) => Promise<any>,
+    delete: (key: string) => Promise<any>,
+}
+
+type GetCacheKey = (url: RequestInfo, params?: RequestInit) => string;
+
+interface Constructor {
+    request: HttpRequest,
+    storage: Storage,
+    getCacheKey: GetCacheKey
+}
+
+class CacheService {
+    private request: HttpRequest;
+    private storage: Storage;
+    private getCacheKey: GetCacheKey;
+
+    constructor({ request, storage }: Constructor) {
+        this.request = request;
+        this.storage = storage;
+        //TODO: implement key extractor
+        this.getCacheKey = (url: RequestInfo, params?: RequestInit) => String(url).slice(1);
+    }
+}
