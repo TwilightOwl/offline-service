@@ -1,6 +1,10 @@
-const request = (url: string, data: any) => {
+const request = (url: RequestInfo, data?: RequestInit): Promise<Response> => {
     return new Promise((resolve, reject) => {
-        setTimeout(() => resolve(Math.random()), 2000);
+        const success = String(url)[0] !== '-';
+        setTimeout(() => (success ? resolve : reject)({
+            ok: success,
+            body: Math.random()
+        } as any), 2000);
     })
 }
 
