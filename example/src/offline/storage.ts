@@ -1,3 +1,20 @@
+
+interface cons {
+    a: number
+}
+
+class A {
+    private a = 0;
+    constructor({ a }: cons) {
+        this.a = a;
+    }
+}
+
+const a = new A({ a: 3 });
+
+export default A;
+
+/*
 class Storage {
 
     storage: any = {}
@@ -6,8 +23,8 @@ class Storage {
         this.storage[hash] = { hash, data, until: Date.now() + ttl }
         localStorage.setItem(hash, JSON.stringify({ hash, data, until: Date.now() + ttl }));
     }
-
     retrieve = async (hash: string) => {
+
         // const node = this.storage[hash];
         // return node && node.until > Date.now();
         const node = localStorage.getItem(hash);
@@ -34,3 +51,4 @@ class Storage {
 
 
 export default new Storage();
+*/
