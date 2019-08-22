@@ -1,19 +1,16 @@
 import React from 'react';
-import httpRequest from './offline/http';
-import OfflineService, { RefreshCacheStrategy, RequestCacheStrategy, RequestTypes, CacheThenNetworkRequestStrategyResult, ResponseWithCacheInfo } from './offline';
+import ReactDOM from 'react-dom';
+import { request, storage, getCacheKey } from './mocks';
 
-const service = new OfflineService({
-  request: httpRequest,
-  storage: {
-    set: async (key, data) => (localStorage.setItem(key, JSON.stringify(data)), true),
-    get: async (key) => {
-      const item = localStorage.getItem(key);
-      return item === null ? item : JSON.parse(item);
-    },
-    delete: async (key) => (localStorage.removeItem(key), true)
-  },
-  getCacheKey: (url: RequestInfo, params?: RequestInit) => String(url).slice(1)
-});
+import OfflineService, {
+  RefreshCacheStrategy, 
+  RequestCacheStrategy, 
+  RequestTypes, 
+  CacheThenNetworkRequestStrategyResult, 
+  ResponseWithCacheInfo 
+} from '../../src';
+
+const service = new OfflineService({ request, storage, getCacheKey });
 
 class App extends React.Component {
 
