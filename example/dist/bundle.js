@@ -26786,7 +26786,7 @@
 	var OfflineService = /** @class */ (function () {
 	    function OfflineService(_a) {
 	        var _this = this;
-	        var request = _a.request, storage = _a.storage, getCacheKey = _a.getCacheKey;
+	        var request = _a.request, storage = _a.storage, getCacheKey = _a.getCacheKey, serializer = _a.serializer;
 	        // ==================== Storage functions ====================
 	        this.setCacheItem = function (key, data, ttl) {
 	            if (ttl === void 0) { ttl = 10000; }
@@ -26824,13 +26824,17 @@
 	                args[_i] = arguments[_i];
 	            }
 	            return __awaiter(_this, void 0, void 0, function () {
-	                var _a;
-	                return __generator(this, function (_b) {
-	                    switch (_b.label) {
-	                        case 0:
+	                var response, _a, _b, _c;
+	                return __generator(this, function (_d) {
+	                    switch (_d.label) {
+	                        case 0: return [4 /*yield*/, this.httpRequest.apply(this, args)];
+	                        case 1:
+	                            response = _d.sent();
 	                            _a = {};
-	                            return [4 /*yield*/, this.httpRequest.apply(this, args)];
-	                        case 1: return [2 /*return*/, (_a.response = _b.sent(), _a)];
+	                            _b = [{}, response];
+	                            _c = {};
+	                            return [4 /*yield*/, this.serializer(response)];
+	                        case 2: return [2 /*return*/, (_a.response = __assign.apply(void 0, _b.concat([(_c.serialized = _d.sent(), _c)])), _a)];
 	                    }
 	                });
 	            });
@@ -27011,20 +27015,15 @@
 	            });
 	        }); };
 	        this.sendRequest = function (url, params) { return __awaiter(_this, void 0, void 0, function () {
-	            var cacheKey;
 	            return __generator(this, function (_a) {
-	                switch (_a.label) {
-	                    case 0:
-	                        cacheKey = this.getCacheKey(url, params);
-	                        return [4 /*yield*/, this.saveToQueue({ url: url, params: params, cacheKey: cacheKey, entity: (params || {}).entity || undefined })];
-	                    case 1:
-	                        _a.sent();
-	                        return [2 /*return*/];
-	                }
+	                return [2 /*return*/, Promise.resolve({})
+	                    //const cacheKey = this.getCacheKey(url, params)
+	                    //await this.saveToQueue({ url, params, cacheKey, entity: (params || {}).entity || undefined });
+	                ];
 	            });
 	        }); };
 	        this.receiveRequest = function (url, params) { return __awaiter(_this, void 0, void 0, function () {
-	            var _a, refreshCacheStrategy, _b, requestCacheStrategy, restParams, _c, response, cacheStatus, cacheResult, error_3, error_4;
+	            var _a, refreshCacheStrategy, _b, requestCacheStrategy, restParams, _c, response, cacheStatus, error_3;
 	            var _d, _e;
 	            return __generator(this, function (_f) {
 	                switch (_f.label) {
@@ -27032,7 +27031,7 @@
 	                        _a = params.refreshCacheStrategy, refreshCacheStrategy = _a === void 0 ? RefreshCacheStrategy.RefreshAlways : _a, _b = params.requestCacheStrategy, requestCacheStrategy = _b === void 0 ? RequestCacheStrategy.CacheFallingBackToNetwork : _b, restParams = __rest(params, ["refreshCacheStrategy", "requestCacheStrategy"]);
 	                        _f.label = 1;
 	                    case 1:
-	                        _f.trys.push([1, 9, , 10]);
+	                        _f.trys.push([1, 3, , 4]);
 	                        return [4 /*yield*/, ((_d = {},
 	                                _d[RequestCacheStrategy.NetworkOnly] = this.networkOnlyRequest,
 	                                _d[RequestCacheStrategy.CacheOnly] = this.cacheOnlyRequest,
@@ -27043,33 +27042,33 @@
 	                    case 2:
 	                        _c = _f.sent(), response = _c.response, cacheStatus = _c.cacheStatus;
 	                        if (requestCacheStrategy === RequestCacheStrategy.CacheThenNetwork) {
-	                            return [2 /*return*/, __assign({}, response ? { cached: this.mergeResponseWithCachedInfo(response, cacheStatus) } : {}, { network: this.request(url, __assign({}, params, { requestCacheStrategy: RequestCacheStrategy.NetworkOnly })) })];
+	                            return [2 /*return*/, __assign({}, response ? { cached: this.mergeResponseWithCachedInfo(response, cacheStatus) } : {}, { network: this.receiveRequest(url, __assign({}, params, { requestCacheStrategy: RequestCacheStrategy.NetworkOnly })) })];
 	                        }
-	                        if (!response.ok) return [3 /*break*/, 7];
-	                        _f.label = 3;
+	                        if (response.ok) {
+	                            try {
+	                                // We have not to wait cache update and we don't need the result of caching
+	                                // const cacheResult = await ({
+	                                ((_e = {},
+	                                    _e[RefreshCacheStrategy.NoStore] = function () { },
+	                                    _e[RefreshCacheStrategy.RefreshAlways] = this.refreshAlwaysCaching,
+	                                    _e[RefreshCacheStrategy.RefreshWhenExpired] = this.refreshWhenExpiredCaching,
+	                                    _e)[refreshCacheStrategy] || (function () { throw 'Unknown refresh cache strategy'; }))(url, restParams, response, cacheStatus);
+	                                return [2 /*return*/, this.mergeResponseWithCachedInfo(response, cacheStatus)];
+	                            }
+	                            catch (error) {
+	                                //TODO: provide error object
+	                                throw 'Caching has been failed';
+	                            }
+	                        }
+	                        else {
+	                            //TODO: to think about this case
+	                            throw response;
+	                        }
+	                        return [3 /*break*/, 4];
 	                    case 3:
-	                        _f.trys.push([3, 5, , 6]);
-	                        return [4 /*yield*/, ((_e = {},
-	                                _e[RefreshCacheStrategy.NoStore] = function () { },
-	                                _e[RefreshCacheStrategy.RefreshAlways] = this.refreshAlwaysCaching,
-	                                _e[RefreshCacheStrategy.RefreshWhenExpired] = this.refreshWhenExpiredCaching,
-	                                _e)[refreshCacheStrategy] || (function () { throw 'Unknown refresh cache strategy'; }))(url, restParams, response, cacheStatus)];
-	                    case 4:
-	                        cacheResult = _f.sent();
-	                        return [2 /*return*/, this.mergeResponseWithCachedInfo(response, cacheStatus)];
-	                    case 5:
 	                        error_3 = _f.sent();
-	                        //TODO: provide error object
-	                        throw 'Caching has been failed';
-	                    case 6: return [3 /*break*/, 8];
-	                    case 7: 
-	                    //TODO: to think about this case
-	                    throw response;
-	                    case 8: return [3 /*break*/, 10];
-	                    case 9:
-	                        error_4 = _f.sent();
-	                        throw error_4;
-	                    case 10: 
+	                        throw error_3;
+	                    case 4: 
 	                    //} else if (requestType === RequestTypes.DataSendRequest) {
 	                    // TODO: big work!!!!!!!
 	                    /**
@@ -27192,11 +27191,12 @@
 	        this.storage = storage;
 	        //TODO: implement key extractor
 	        this.getCacheKey = getCacheKey;
+	        this.serializer = serializer;
 	    }
 	    return OfflineService;
 	}());
 
-	var service = new OfflineService({ request: request, storage: storage, getCacheKey: getCacheKey });
+	var service = new OfflineService({ request: request, storage: storage, getCacheKey: getCacheKey, serializer: function (response) { return response.text(); } });
 	var App = /** @class */ (function (_super) {
 	    __extends(App, _super);
 	    function App() {
@@ -27207,31 +27207,30 @@
 	        _this.successRequest = function () { return _this.request(true); };
 	        _this.failureRequest = function () { return _this.request(false); };
 	        _this.request = function (success) { return __awaiter(_this, void 0, void 0, function () {
-	            var result, networkResult, error_1;
+	            var result, error_1;
 	            return __generator(this, function (_a) {
 	                switch (_a.label) {
 	                    case 0:
-	                        _a.trys.push([0, 3, , 4]);
+	                        _a.trys.push([0, 2, , 3]);
 	                        return [4 /*yield*/, service.request((success ? '+' : '-') + "/method 1", {
-	                                requestCacheStrategy: RequestCacheStrategy.CacheThenNetwork,
-	                                //refreshCacheStrategy: RefreshCacheStrategy.RefreshAlways,
-	                                refreshCacheStrategy: RefreshCacheStrategy.RefreshWhenExpired,
+	                                requestCacheStrategy: RequestCacheStrategy.NetworkOnly,
+	                                //requestCacheStrategy: RequestCacheStrategy.CacheOnly,
+	                                //requestCacheStrategy: RequestCacheStrategy.NetworkFallingBackToCache,
+	                                //requestCacheStrategy: RequestCacheStrategy.CacheFallingBackToNetwork,
+	                                refreshCacheStrategy: RefreshCacheStrategy.RefreshAlways,
+	                                //refreshCacheStrategy: RefreshCacheStrategy.RefreshWhenExpired,
 	                                //refreshCacheStrategy: RefreshCacheStrategy.NoStore,
-	                                //deleteCacheIfExpired: true,
+	                                //deleteCacheIfExpired: true,        
 	                                requestType: RequestTypes.DataReceiveRequest
 	                            })];
 	                    case 1:
 	                        result = _a.sent();
-	                        result.cached && this.setState({ result: result.cached.body + " " + (result.cached.cached ? 'cached' : '') + " " + (result.cached.expired ? 'expired' : '') + " " });
-	                        return [4 /*yield*/, result.network];
+	                        this.setState({ result: result.body + " " + (result.cached ? 'cached' : '') + " " + (result.expired ? 'expired' : '') + " " });
+	                        return [3 /*break*/, 3];
 	                    case 2:
-	                        networkResult = _a.sent();
-	                        this.setState({ result: networkResult.body });
-	                        return [3 /*break*/, 4];
-	                    case 3:
 	                        error_1 = _a.sent();
 	                        throw error_1;
-	                    case 4: return [2 /*return*/];
+	                    case 3: return [2 /*return*/];
 	                }
 	            });
 	        }); };

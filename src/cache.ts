@@ -82,22 +82,27 @@ interface Storage {
 
 type GetCacheKey = (url: RequestInfo, params?: RequestInit) => string;
 
+type Serializer = (response: Response) => any;
+
 interface Constructor {
     request: HttpRequest,
     storage: Storage,
-    getCacheKey: GetCacheKey
+    getCacheKey: GetCacheKey,
+    serializer: Serializer
 }
 
 export default class OfflineService {
     private httpRequest: HttpRequest;
     private storage: Storage;
     private getCacheKey: GetCacheKey;
+    private serializer: Serializer;
 
-    constructor({ request, storage, getCacheKey }: Constructor) {
+    constructor({ request, storage, getCacheKey, serializer }: Constructor) {
         this.httpRequest = request;
         this.storage = storage;
         //TODO: implement key extractor
         this.getCacheKey = getCacheKey;
+        this.serializer = serializer;
     }
 
     // ==================== Storage functions ====================
@@ -122,7 +127,8 @@ export default class OfflineService {
     // ==================== Request functions ====================
 
     private networkOnlyRequest: RequestFunction = async (...args) => {
-        return ({ response: await this.httpRequest(...args) }) as RequestResult;
+        const response = await this.httpRequest(...args);
+        return ({ response: { ...response, serialized: await this.serializer(response) } }) as RequestResult;
     }
     
     private cacheOnlyRequest: RequestFunction = async (url, params) => {
@@ -234,8 +240,9 @@ export default class OfflineService {
     }
 
     private sendRequest: CustomRequest = async (url: RequestInfo, params: RequestInitWithCacheParameters) => {
-        const cacheKey = this.getCacheKey(url, params)
-        await this.saveToQueue({ url, params, cacheKey, entity: (params || {}).entity || undefined });
+        return Promise.resolve({} as CacheThenNetworkRequestStrategyResult)
+        //const cacheKey = this.getCacheKey(url, params)
+        //await this.saveToQueue({ url, params, cacheKey, entity: (params || {}).entity || undefined });
 
     }
 
@@ -259,13 +266,15 @@ export default class OfflineService {
                 if (requestCacheStrategy === RequestCacheStrategy.CacheThenNetwork) {
                     return {
                         ...response ? { cached: this.mergeResponseWithCachedInfo(response, cacheStatus) } : {},
-                        network: this.request(url, { ...params, requestCacheStrategy: RequestCacheStrategy.NetworkOnly }) as Promise<ResponseWithCacheInfo>
+                        network: this.receiveRequest(url, { ...params, requestCacheStrategy: RequestCacheStrategy.NetworkOnly }) as Promise<ResponseWithCacheInfo>
                     }
                 }
     
                 if (response!.ok) {
                     try {
-                        const cacheResult = await ({
+                        // We have not to wait cache update and we don't need the result of caching
+                        // const cacheResult = await ({
+                        ({
                             [RefreshCacheStrategy.NoStore]: () => {},
                             [RefreshCacheStrategy.RefreshAlways]: this.refreshAlwaysCaching,
                             [RefreshCacheStrategy.RefreshWhenExpired]: this.refreshWhenExpiredCaching,
