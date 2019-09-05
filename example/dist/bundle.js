@@ -26731,7 +26731,7 @@
 	        var success = String(url)[0] !== '-';
 	        setTimeout(function () { return (success ? resolve : reject)({
 	            ok: success,
-	            body: Math.random()
+	            text: Math.random
 	        }); }, 2000);
 	    });
 	};
@@ -27213,9 +27213,9 @@
 	                    case 0:
 	                        _a.trys.push([0, 2, , 3]);
 	                        return [4 /*yield*/, service.request((success ? '+' : '-') + "/method 1", {
-	                                requestCacheStrategy: RequestCacheStrategy.NetworkOnly,
+	                                //requestCacheStrategy: RequestCacheStrategy.NetworkOnly,
 	                                //requestCacheStrategy: RequestCacheStrategy.CacheOnly,
-	                                //requestCacheStrategy: RequestCacheStrategy.NetworkFallingBackToCache,
+	                                requestCacheStrategy: RequestCacheStrategy.NetworkFallingBackToCache,
 	                                //requestCacheStrategy: RequestCacheStrategy.CacheFallingBackToNetwork,
 	                                refreshCacheStrategy: RefreshCacheStrategy.RefreshAlways,
 	                                //refreshCacheStrategy: RefreshCacheStrategy.RefreshWhenExpired,
@@ -27225,7 +27225,7 @@
 	                            })];
 	                    case 1:
 	                        result = _a.sent();
-	                        this.setState({ result: result.body + " " + (result.cached ? 'cached' : '') + " " + (result.expired ? 'expired' : '') + " " });
+	                        this.setState({ result: result.serialized + " " + (result.cached ? 'cached' : '') + " " + (result.expired ? 'expired' : '') + " " });
 	                        return [3 /*break*/, 3];
 	                    case 2:
 	                        error_1 = _a.sent();

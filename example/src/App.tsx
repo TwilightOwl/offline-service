@@ -28,9 +28,9 @@ class App extends React.Component {
       // Test 1
       
       const result = await service.request(`${success ? '+' : '-'}/method 1`, {
-        requestCacheStrategy: RequestCacheStrategy.NetworkOnly,
+        //requestCacheStrategy: RequestCacheStrategy.NetworkOnly,
         //requestCacheStrategy: RequestCacheStrategy.CacheOnly,
-        //requestCacheStrategy: RequestCacheStrategy.NetworkFallingBackToCache,
+        requestCacheStrategy: RequestCacheStrategy.NetworkFallingBackToCache,
         //requestCacheStrategy: RequestCacheStrategy.CacheFallingBackToNetwork,
 
         refreshCacheStrategy: RefreshCacheStrategy.RefreshAlways,
@@ -40,7 +40,7 @@ class App extends React.Component {
         //deleteCacheIfExpired: true,        
         requestType: RequestTypes.DataReceiveRequest
       }) as ResponseWithCacheInfo ;
-      this.setState({ result: `${result.body} ${result.cached ? 'cached' : ''} ${result.expired ? 'expired' : ''} ` });
+      this.setState({ result: `${result.serialized} ${result.cached ? 'cached' : ''} ${result.expired ? 'expired' : ''} ` });
       
 
       // Test 2

@@ -3,7 +3,7 @@ export const request = (url: RequestInfo, data?: RequestInit): Promise<Response>
       const success = String(url)[0] !== '-';
       setTimeout(() => (success ? resolve : reject)({
           ok: success,
-          body: Math.random()
+          text: Math.random
       } as any), 2000);
   })
 }
