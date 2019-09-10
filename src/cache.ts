@@ -1,3 +1,5 @@
+import Sender from './sender'
+
 export enum RefreshCacheStrategy {
     RefreshWhenExpired,
     RefreshAlways,
@@ -96,6 +98,7 @@ export default class OfflineService {
     private storage: Storage;
     private getCacheKey: GetCacheKey;
     private serializer: Serializer;
+    private sender: Sender;
 
     constructor({ request, storage, getCacheKey, serializer }: Constructor) {
         this.httpRequest = request;
@@ -103,6 +106,9 @@ export default class OfflineService {
         //TODO: implement key extractor
         this.getCacheKey = getCacheKey;
         this.serializer = serializer;
+        this.sender = new Sender({
+            request
+        });
     }
 
     // ==================== Storage functions ====================
@@ -240,6 +246,7 @@ export default class OfflineService {
     }
 
     private sendRequest: CustomRequest = async (url: RequestInfo, params: RequestInitWithCacheParameters) => {
+        return this.sender.send(url, params)
         return Promise.resolve({} as CacheThenNetworkRequestStrategyResult)
         //const cacheKey = this.getCacheKey(url, params)
         //await this.saveToQueue({ url, params, cacheKey, entity: (params || {}).entity || undefined });

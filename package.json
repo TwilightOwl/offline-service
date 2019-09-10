@@ -16,6 +16,9 @@
   },
   "author": "Denis Zhelnerovich",
   "license": "ISC",
+  "dependencies": {
+    "asynchronous-tools": "https://github.com/TwilightOwl/asynchronous-tools"
+  },
   "devDependencies": {
     "@types/react": "^16.4.11",
     "react": "^16.0.0",
