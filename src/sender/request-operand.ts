@@ -4,6 +4,8 @@ enum PromiseStatus {
   Rejected = 'rejected'
 }
 
+const NETWORK_ERROR = 'network error'
+
 export default class RequestOperand {
 
   private data = {}

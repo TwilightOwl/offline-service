@@ -17,17 +17,18 @@ export default class Queue {
   // SYNC!!!
   public add = (url, params) => {
     const ro = new RequestOperand(url, params)
+    
     this.queue.push(ro);
     return ro
   }
 
-  private reject = item => {
-    item.primary.reject({ 
-      error: 'Network error',
-      promise: item.secondary.promise
-    })
-  }
+  // private reject = item => {
+  //   item.primary.reject({ 
+  //     error: 'Network error',
+  //     promise: item.secondary.promise
+  //   })
+  // }
 
-  public rejectAll = () => this.queue.forEach(this.reject)
+  public rejectAll = () => this.queue.forEach(ro => ro.rejectWithNetworkError())
 
 }

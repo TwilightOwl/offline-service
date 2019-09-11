@@ -37,19 +37,8 @@ export default class Sender {
 
   // private task = this.taskQueue(async () => {})
 
-  private task = async (requestOperand) => {
-    return new Promise(async resolve => {
-      try {
-        const response = await this.request()
-        throwIfNetworkError(response)
-        resolve(response)
-      } catch (error) {
-        this.runDeffered
-        throw 'TODO отложенный запуск запроса'
-      }
-    })
-  }
 
+  // TO CALL FROM UI
   public send = (url, params) => {
     const ro = this.queue.add(url, params)
     if (!this.connected && !this.empty) {
@@ -58,6 +47,15 @@ export default class Sender {
     // попытка запуска обработки первого запроса в очереди
     this.launch()
     return ro.primaryPromise
+      .catch(error => {
+        if (error.error == 'network error') {
+          this.queue.rejectAll()
+          return error.promise
+        } else {
+          // "хорошая" ошибка безнес логики
+          throw error
+        }
+      })
   }
 
   private launch = () => {
@@ -72,7 +70,21 @@ export default class Sender {
     this.process = true
   }
 
-  public sendRequest = async (req) => {
+  private task = async (requestOperand) => {
+    return new Promise(async resolve => {
+      try {
+        const response = await this.request()
+        throwIfNetworkError(response)
+        resolve(response)
+      } catch (error) {
+        this.runDeffered
+        throw 'TODO отложенный запуск запроса'
+      }
+    })
+  }
+
+
+  public BAD____sendRequest = async (req) => {
 
     if (this.empty) {
       if (this.connected) {
