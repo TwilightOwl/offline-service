@@ -245,7 +245,7 @@ export default class OfflineService {
         return requestType === RequestTypes.DataSendRequest ? await this.sendRequest(url, rest) : await this.receiveRequest(url, rest)
     }
 
-    private sendRequest: CustomRequest = async (url: RequestInfo, params: RequestInitWithCacheParameters) => {
+    private sendRequest: CustomRequest = (url: RequestInfo, params: RequestInitWithCacheParameters) => {
         return this.sender.send(url, params)
         return Promise.resolve({} as CacheThenNetworkRequestStrategyResult)
         //const cacheKey = this.getCacheKey(url, params)

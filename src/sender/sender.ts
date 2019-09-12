@@ -1,18 +1,24 @@
 // import { queue as queueTool } from 'asynchronous-tools';
 
-import Queue from './queue'
+// import Queue from './queue'
+import RequestOperand from './request-operand'
 
 export default class Sender {
 
-  private queue = new Queue()
+  private queue = [] // new Queue()
 
   private connected = true
   private idle = true
   private process = false
+
+  private request: any
   
   constructor ({ request }) {
-    this.request = request || ((ok = true) => new Promsie((resolve, reject) => setTimeout(ok ? resolve : reject, 1000)))
+    this.request = //request || 
+    ((ok = true) => new Promise((resolve, reject) => setTimeout(() => ok ? resolve('OK') : reject('bad...'), 2000)))
   }
+
+
 
   // private taskQueue = queueTool('Task queue', { 
   //   onIsQueueProcessing: (isProcessing: boolean) => {},
@@ -40,7 +46,11 @@ export default class Sender {
 
   // TO CALL FROM UI
   public send = (url, params) => {
-    const ro = this.queue.add(url, params)
+
+    const ro = new RequestOperand(url, params)
+    this.queue.push(ro);
+
+
     if (!this.connected && !this.idle) {
       ro.rejectWithNetworkError()
     }
@@ -97,21 +107,23 @@ export default class Sender {
 
   /////////////////////
 
-  private runner = async () => {
+  private runner = async (auto = false) => {
     //if (this.process) {
     //  
     //} else {
+      debugger;
     
       if (this.queue.length) {
-        if (this.idle) {
+        if (this.idle || auto) {
           this.idle = false
           await this.task(this.queue[0])
           this.queue.shift()
-          setTimeout(this.runner, 0)
+          setTimeout(() => this.runner(true), 0)
         } else {
           if (this.process) {
-            //
+            console.log('Nothing')
           } else {
+            console.log('runDeffered')
             this.runDeffered()
           }
         }
@@ -123,21 +135,25 @@ export default class Sender {
   }
 
   private task = async (requestOperand) => {
-    const { url, params } = requestOperand
+    const { url, params } = requestOperand.data
 
     return new Promise(async resolve => {
 
-      const make = async () => {
+      const make = async (debugURL = url) => {
         this.process = true
+        debugger;
         try {
-          const response = await this.request(url, params)
-          throwIfNetworkError(response)
-
+          const response = await this.request(debugURL, params)
+          this.throwIfNetworkError(response)
+          requestOperand.resolve(response)
           // this.removeDeffered()
-
+          debugger;
           resolve(response)
         } catch (error) {
-          this.createDeffered(make)
+          console.log(error)
+          debugger;
+          this.rejectAll()
+          this.createDeffered(() => make(debugURL + 1))
           this.process = false
         } 
       }
@@ -146,12 +162,16 @@ export default class Sender {
     })
   }
 
+  private throwIfNetworkError = (response) => {}
+
+  private rejectAll = () => this.queue.forEach(ro => ro.rejectWithNetworkError())
+
   private createDeffered = (func) => {
     if (this.deffered && this.deffered.timer) {
       clearTimeout(this.deffered.timer)
       console.error('Overwrite old deferred!')
     }
-    this.deffered = { func, timer: setTimeout(this.runDeffered, 5000) }
+    this.deffered = { func, timer: setTimeout(this.runDeffered, 10000) }
   }
 
   private runDeffered = () => {
@@ -165,7 +185,7 @@ export default class Sender {
     }
   }
 
-
+  /*
   public BAD____sendRequest = async (req) => {
 
     if (this.idle) {
@@ -199,6 +219,7 @@ export default class Sender {
     }
 
   }
+  */
 
 }
 

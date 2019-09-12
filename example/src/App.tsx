@@ -64,14 +64,39 @@ class App extends React.Component {
     }
   }
 
+  successSend = () => this.send(1)
+  failureSend = () => this.send(0)
+
+  send = async (success) => {
+    this.c = (this.c || 0) + 1;
+    const c = this.c;
+    try {
+      const response = await service.request(success, {   
+        requestType: RequestTypes.DataSendRequest
+      }) as ResponseWithCacheInfo ;
+      console.log('APP', c, response)
+    } catch (error) {
+      console.error('APP', c, error)
+      if (error.promise) {
+        error.promise
+          .then(ok => console.log('APP secondary', c, ok))
+          .catch(ok => console.error('APP secondary', c, ok))
+      }
+    }
+  }
+
   render() {
     return (
       <div className="App">
         <br/>
         {this.state.result}
         <br/><br/><br/>
+        <button onClick={this.successSend}>Make success send</button>
+        <button onClick={this.failureSend}>Make failure send</button>
+        <br/><br/><br/>
         <button onClick={this.successRequest}>Make success request</button>
         <button onClick={this.failureRequest}>Make failure request</button>
+
       </div>
     );
   }

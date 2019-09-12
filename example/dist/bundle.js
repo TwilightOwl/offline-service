@@ -26752,6 +26752,292 @@
 	};
 	var getCacheKey = function (url, params) { return String(url).slice(1); };
 
+	var PromiseStatus;
+	(function (PromiseStatus) {
+	    PromiseStatus["Pending"] = "pending";
+	    PromiseStatus["Fulfilled"] = "fulfilled";
+	    PromiseStatus["Rejected"] = "rejected";
+	})(PromiseStatus || (PromiseStatus = {}));
+	var RequestOperand = /** @class */ (function () {
+	    function RequestOperand(url, params) {
+	        var _this = this;
+	        this.data = {};
+	        this.createPromise = function () {
+	            var resolve, reject, status;
+	            return {
+	                promise: new Promise(function (res, rej) {
+	                    resolve = function () {
+	                        var args = [];
+	                        for (var _i = 0; _i < arguments.length; _i++) {
+	                            args[_i] = arguments[_i];
+	                        }
+	                        return (status = status || PromiseStatus.Fulfilled, res.apply(void 0, args));
+	                    };
+	                    reject = function () {
+	                        var args = [];
+	                        for (var _i = 0; _i < arguments.length; _i++) {
+	                            args[_i] = arguments[_i];
+	                        }
+	                        return (status = status || PromiseStatus.Rejected, rej.apply(void 0, args));
+	                    };
+	                }),
+	                resolve: resolve,
+	                reject: reject,
+	                get status() { return status || PromiseStatus.Pending; }
+	            };
+	        };
+	        this.rejectWithNetworkError = function () {
+	            if (_this.primary.status === PromiseStatus.Pending) {
+	                _this.secondary = _this.createPromise();
+	                _this.primary.reject({
+	                    error: 'network error',
+	                    promise: _this.secondary.promise
+	                });
+	            }
+	        };
+	        this.data = { url: url, params: params };
+	        this.primary = this.createPromise();
+	    }
+	    Object.defineProperty(RequestOperand.prototype, "isNetworkError", {
+	        get: function () {
+	            return this.primary.status === PromiseStatus.Rejected;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Object.defineProperty(RequestOperand.prototype, "primaryPromise", {
+	        get: function () {
+	            return this.primary.promise;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Object.defineProperty(RequestOperand.prototype, "resolvePrimary", {
+	        get: function () {
+	            return this.primary.resolve;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Object.defineProperty(RequestOperand.prototype, "resolveSecondary", {
+	        get: function () {
+	            return this.secondary.resolve;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Object.defineProperty(RequestOperand.prototype, "resolve", {
+	        get: function () {
+	            return this.primary.status === PromiseStatus.Rejected ? this.secondary.resolve : this.primary.resolve;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    return RequestOperand;
+	}());
+
+	// import { queue as queueTool } from 'asynchronous-tools';
+	var Sender = /** @class */ (function () {
+	    function Sender(_a) {
+	        var _this = this;
+	        var request = _a.request;
+	        this.queue = []; // new Queue()
+	        this.connected = true;
+	        this.idle = true;
+	        this.process = false;
+	        // private taskQueue = queueTool('Task queue', { 
+	        //   onIsQueueProcessing: (isProcessing: boolean) => {},
+	        //   // onRejection: OnRejection.RejectAlways
+	        // })
+	        /*
+	          таск - промис, который может только резолвиться. делает следующее:
+	            - таск завязан на конкретный элемент очереди промисов this.queue
+	            - пытается сделать запрос, запрос успешен
+	              ?
+	                - резолвится промис из req: если запрос делался первый раз (т.е. промис A в req не зарезолвен) то резолвится A, если уже
+	                  был фэйл с сетью и в ожидании промис B, то резолвим его.
+	                - резолвим таск. дальше засчет обертки this.taskQueue запустится следующий таск
+	              :
+	                - реджектим промис A у всех req в this.queue (можно не реджектить если уже реджектнутый), таким образом ui узнает от всех своих текущих запросов,
+	                  что проблемы с сетью
+	                - запускаем по таймауту вторую попытку отправки, таск попрежнему не зарезолвлен, все остальные таски продолжают ждать в очереди
+	      
+	      
+	        */
+	        // private task = this.taskQueue(async () => {})
+	        // TO CALL FROM UI
+	        this.send = function (url, params) {
+	            var ro = new RequestOperand(url, params);
+	            _this.queue.push(ro);
+	            if (!_this.connected && !_this.idle) {
+	                ro.rejectWithNetworkError();
+	            }
+	            // попытка запуска обработки первого запроса в очереди
+	            // this.launch()
+	            _this.runner();
+	            return ro.primaryPromise;
+	            // .catch(error => {
+	            //   if (error.error == 'network error') {
+	            //     this.queue.rejectAll()
+	            //     return error.promise
+	            //   } else {
+	            //     // "хорошая" ошибка безнес логики
+	            //     throw error
+	            //   }
+	            // })
+	        };
+	        /*
+
+	        // версия по аналогии с queue из async-tools
+	        private doNext = async () => {
+	          const ro = this.queue[0]
+	          try {
+	            const response = await this.request(ro.data.url, ro.data.params)
+	            throwIfNetworkError(response)
+	            ro.resolve(response)
+	            this.queue.shift()
+	            this.doNext()
+	            // resolve(response)
+	          } catch (error) {
+	            this._____runDeffered(ro)
+	            throw 'TODO отложенный запуск запроса'
+	          }
+
+	        }
+
+	        private _____runDeffered = (...args) => {
+	          this.deffered = setTimeout(() => {
+	            this.doNext(...args)
+	          }, 5000)
+	        }
+
+	        private launch = () => {
+	          // if (!this.queue.length) return
+	          if (this.process) return
+	          this.removeDefferedTask()
+	          
+	          const item = this.queue[0]
+
+	          this.process = true
+	        }
+	        */
+	        /////////////////////
+	        this.runner = function (auto) {
+	            if (auto === void 0) { auto = false; }
+	            return __awaiter(_this, void 0, void 0, function () {
+	                var _this = this;
+	                return __generator(this, function (_a) {
+	                    switch (_a.label) {
+	                        case 0:
+	                            //if (this.process) {
+	                            //  
+	                            //} else {
+	                            debugger;
+	                            if (!this.queue.length) return [3 /*break*/, 4];
+	                            if (!(this.idle || auto)) return [3 /*break*/, 2];
+	                            this.idle = false;
+	                            return [4 /*yield*/, this.task(this.queue[0])];
+	                        case 1:
+	                            _a.sent();
+	                            this.queue.shift();
+	                            setTimeout(function () { return _this.runner(true); }, 0);
+	                            return [3 /*break*/, 3];
+	                        case 2:
+	                            if (this.process) {
+	                                console.log('Nothing');
+	                            }
+	                            else {
+	                                console.log('runDeffered');
+	                                this.runDeffered();
+	                            }
+	                            _a.label = 3;
+	                        case 3: return [3 /*break*/, 5];
+	                        case 4:
+	                            this.idle = true;
+	                            this.process = false;
+	                            _a.label = 5;
+	                        case 5: return [2 /*return*/];
+	                    }
+	                });
+	            });
+	        };
+	        this.task = function (requestOperand) { return __awaiter(_this, void 0, void 0, function () {
+	            var _a, url, params;
+	            var _this = this;
+	            return __generator(this, function (_b) {
+	                _a = requestOperand.data, url = _a.url, params = _a.params;
+	                return [2 /*return*/, new Promise(function (resolve) { return __awaiter(_this, void 0, void 0, function () {
+	                        var make;
+	                        var _this = this;
+	                        return __generator(this, function (_a) {
+	                            make = function (debugURL) {
+	                                if (debugURL === void 0) { debugURL = url; }
+	                                return __awaiter(_this, void 0, void 0, function () {
+	                                    var response, error_1;
+	                                    return __generator(this, function (_a) {
+	                                        switch (_a.label) {
+	                                            case 0:
+	                                                this.process = true;
+	                                                debugger;
+	                                                _a.label = 1;
+	                                            case 1:
+	                                                _a.trys.push([1, 3, , 4]);
+	                                                return [4 /*yield*/, this.request(debugURL, params)];
+	                                            case 2:
+	                                                response = _a.sent();
+	                                                this.throwIfNetworkError(response);
+	                                                requestOperand.resolve(response);
+	                                                // this.removeDeffered()
+	                                                debugger;
+	                                                resolve(response);
+	                                                return [3 /*break*/, 4];
+	                                            case 3:
+	                                                error_1 = _a.sent();
+	                                                console.log(error_1);
+	                                                debugger;
+	                                                this.rejectAll();
+	                                                this.createDeffered(function () { return make(debugURL + 1); });
+	                                                this.process = false;
+	                                                return [3 /*break*/, 4];
+	                                            case 4: return [2 /*return*/];
+	                                        }
+	                                    });
+	                                });
+	                            };
+	                            return [2 /*return*/, make()];
+	                        });
+	                    }); })];
+	            });
+	        }); };
+	        this.throwIfNetworkError = function (response) { };
+	        this.rejectAll = function () { return _this.queue.forEach(function (ro) { return ro.rejectWithNetworkError(); }); };
+	        this.createDeffered = function (func) {
+	            if (_this.deffered && _this.deffered.timer) {
+	                clearTimeout(_this.deffered.timer);
+	                console.error('Overwrite old deferred!');
+	            }
+	            _this.deffered = { func: func, timer: setTimeout(_this.runDeffered, 10000) };
+	        };
+	        this.runDeffered = function () {
+	            if (_this.deffered && _this.deffered.func) {
+	                clearTimeout(_this.deffered.timer);
+	                var func = _this.deffered.func;
+	                _this.deffered = {};
+	                func();
+	            }
+	            else {
+	                console.error('Run unexisted deferred!');
+	            }
+	        };
+	        this.request = //request || 
+	            (function (ok) {
+	                if (ok === void 0) { ok = true; }
+	                return new Promise(function (resolve, reject) { return setTimeout(function () { return ok ? resolve('OK') : reject('bad...'); }, 2000); });
+	            });
+	    }
+	    return Sender;
+	}());
+
 	var RefreshCacheStrategy;
 	(function (RefreshCacheStrategy) {
 	    RefreshCacheStrategy[RefreshCacheStrategy["RefreshWhenExpired"] = 0] = "RefreshWhenExpired";
@@ -27014,14 +27300,12 @@
 	                }
 	            });
 	        }); };
-	        this.sendRequest = function (url, params) { return __awaiter(_this, void 0, void 0, function () {
-	            return __generator(this, function (_a) {
-	                return [2 /*return*/, Promise.resolve({})
-	                    //const cacheKey = this.getCacheKey(url, params)
-	                    //await this.saveToQueue({ url, params, cacheKey, entity: (params || {}).entity || undefined });
-	                ];
-	            });
-	        }); };
+	        this.sendRequest = function (url, params) {
+	            return _this.sender.send(url, params);
+	            return Promise.resolve({});
+	            //const cacheKey = this.getCacheKey(url, params)
+	            //await this.saveToQueue({ url, params, cacheKey, entity: (params || {}).entity || undefined });
+	        };
 	        this.receiveRequest = function (url, params) { return __awaiter(_this, void 0, void 0, function () {
 	            var _a, refreshCacheStrategy, _b, requestCacheStrategy, restParams, _c, response, cacheStatus, error_3;
 	            var _d, _e;
@@ -27192,6 +27476,9 @@
 	        //TODO: implement key extractor
 	        this.getCacheKey = getCacheKey;
 	        this.serializer = serializer;
+	        this.sender = new Sender({
+	            request: request
+	        });
 	    }
 	    return OfflineService;
 	}());
@@ -27234,12 +27521,49 @@
 	                }
 	            });
 	        }); };
+	        _this.successSend = function () { return _this.send(1); };
+	        _this.failureSend = function () { return _this.send(0); };
+	        _this.send = function (success) { return __awaiter(_this, void 0, void 0, function () {
+	            var c, response, error_2;
+	            return __generator(this, function (_a) {
+	                switch (_a.label) {
+	                    case 0:
+	                        this.c = (this.c || 0) + 1;
+	                        c = this.c;
+	                        _a.label = 1;
+	                    case 1:
+	                        _a.trys.push([1, 3, , 4]);
+	                        return [4 /*yield*/, service.request(success, {
+	                                requestType: RequestTypes.DataSendRequest
+	                            })];
+	                    case 2:
+	                        response = _a.sent();
+	                        console.log('APP', c, response);
+	                        return [3 /*break*/, 4];
+	                    case 3:
+	                        error_2 = _a.sent();
+	                        console.error('APP', c, error_2);
+	                        if (error_2.promise) {
+	                            error_2.promise
+	                                .then(function (ok) { return console.log('APP secondary', c, ok); })
+	                                .catch(function (ok) { return console.error('APP secondary', c, ok); });
+	                        }
+	                        return [3 /*break*/, 4];
+	                    case 4: return [2 /*return*/];
+	                }
+	            });
+	        }); };
 	        return _this;
 	    }
 	    App.prototype.render = function () {
 	        return (react.createElement("div", { className: "App" },
 	            react.createElement("br", null),
 	            this.state.result,
+	            react.createElement("br", null),
+	            react.createElement("br", null),
+	            react.createElement("br", null),
+	            react.createElement("button", { onClick: this.successSend }, "Make success send"),
+	            react.createElement("button", { onClick: this.failureSend }, "Make failure send"),
 	            react.createElement("br", null),
 	            react.createElement("br", null),
 	            react.createElement("br", null),
