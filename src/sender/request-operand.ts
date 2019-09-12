@@ -46,6 +46,10 @@ export default class RequestOperand {
     return this.secondary.resolve
   }
 
+  public get resolve () {
+    return this.primary.status === PromiseStatus.Rejected ? this.secondary.resolve : this.primary.resolve
+  }
+
   public rejectWithNetworkError = () => {
     if (this.primary.status === PromiseStatus.Pending) {
       this.secondary = this.createPromise()
