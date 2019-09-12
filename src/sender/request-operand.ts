@@ -6,9 +6,14 @@ enum PromiseStatus {
 
 const NETWORK_ERROR = 'network error'
 
+interface Data {
+  url: string,
+  params: object
+}
+
 export default class RequestOperand {
 
-  private data = {}
+  public data!: Data
   private primary!
   private secondary: any
 

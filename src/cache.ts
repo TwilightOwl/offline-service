@@ -106,8 +106,10 @@ export default class OfflineService {
         //TODO: implement key extractor
         this.getCacheKey = getCacheKey;
         this.serializer = serializer;
+
         this.sender = new Sender({
-            request
+            request,
+            storage
         });
     }
 

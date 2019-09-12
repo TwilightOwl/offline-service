@@ -66,6 +66,7 @@ class App extends React.Component {
 
   successSend = () => this.send(1)
   failureSend = () => this.send(0)
+  badSend = () => this.send(10)
 
   send = async (success) => {
     this.c = (this.c || 0) + 1;

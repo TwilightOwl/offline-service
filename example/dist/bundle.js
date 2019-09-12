@@ -26986,6 +26986,7 @@
 	                                            case 2:
 	                                                response = _a.sent();
 	                                                this.throwIfNetworkError(response);
+	                                                this.connected = true;
 	                                                requestOperand.resolve(response);
 	                                                // this.removeDeffered()
 	                                                debugger;
@@ -26993,6 +26994,7 @@
 	                                                return [3 /*break*/, 4];
 	                                            case 3:
 	                                                error_1 = _a.sent();
+	                                                this.connected = false;
 	                                                console.log(error_1);
 	                                                debugger;
 	                                                this.rejectAll();
@@ -27523,6 +27525,7 @@
 	        }); };
 	        _this.successSend = function () { return _this.send(1); };
 	        _this.failureSend = function () { return _this.send(0); };
+	        _this.badSend = function () { return _this.send(10); };
 	        _this.send = function (success) { return __awaiter(_this, void 0, void 0, function () {
 	            var c, response, error_2;
 	            return __generator(this, function (_a) {
