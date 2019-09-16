@@ -16,10 +16,12 @@ export default class RequestOperand {
   public data!: Data
   private primary!
   private secondary: any
+  public savedID: number
 
-  constructor(url, params) {
+  constructor(url, params, savedID) {
     this.data = { url, params }
     this.primary = this.createPromise()
+    this.savedID = savedID
   }
   
   private createPromise = () => {

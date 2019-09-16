@@ -27,7 +27,7 @@ export default class Sender {
     this._storage = storage
     this.request = //request || 
 
-    ((ok = true) => new Promise((resolve, reject) => setTimeout(() => ok ? resolve('OK') : reject('bad...'), 2000)))
+    ((ok = true) => new Promise((resolve, reject) => setTimeout(() => !ok ? resolve('OK') : reject('bad...'), 2000)))
   }
 
   // должна вызываться из приложения, когда сторадж будет готов, и произойдет инициализация пользователя. может быть вызван повторно при смене пользователя
@@ -42,8 +42,8 @@ export default class Sender {
     // 3. стартануть runner
     this.storage = new Storage(this._storage)
     const requests = await this.storage.getRequests()
-    requests.forEach(({ url, params }) => {
-      const ro = new RequestOperand(url, params)
+    requests.forEach(({ url, params, savedID }) => {
+      const ro = new RequestOperand(url, params, savedID)
       this.queue.push(ro)
     })
     this.runner()
@@ -112,7 +112,7 @@ export default class Sender {
   private task = async (requestOperand: RequestOperand) => {
     const { url, params } = requestOperand.data
     const key = 'TODO get key from url or params'
-    let requestID;
+    let requestID = requestOperand.savedID
 
     return new Promise(async resolve => {
 
@@ -127,17 +127,18 @@ export default class Sender {
           // this.removeDeffered()
           debugger;
           resolve(response)
-          await this.storage.deleteRequest(requestID)
+          requestID && await this.storage.deleteRequest(requestID)
         } catch (error) {
-          
-          requestID = await this.storage.addRequest(requestOperand.data)
+          if (requestID === undefined) {
+            requestID = await this.storage.addRequest(requestOperand.data)
+          }
           
           this.connected = false
 
           console.log(error)
           debugger;
           this.rejectAll()
-          this.createDeffered(() => make(debugURL + 1))
+          this.createDeffered(() => make(debugURL - 1))
           this.process = false
         } 
       }

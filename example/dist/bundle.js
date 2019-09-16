@@ -27074,7 +27074,7 @@
 	    PromiseStatus["Rejected"] = "rejected";
 	})(PromiseStatus || (PromiseStatus = {}));
 	var RequestOperand = /** @class */ (function () {
-	    function RequestOperand(url, params) {
+	    function RequestOperand(url, params, savedID) {
 	        var _this = this;
 	        this.createPromise = function () {
 	            var resolve, reject, status;
@@ -27111,6 +27111,7 @@
 	        };
 	        this.data = { url: url, params: params };
 	        this.primary = this.createPromise();
+	        this.savedID = savedID;
 	    }
 	    Object.defineProperty(RequestOperand.prototype, "isNetworkError", {
 	        get: function () {
@@ -27174,7 +27175,7 @@
 	                    case 0: return [4 /*yield*/, this.storage.get(REGISTRY_KEY)];
 	                    case 1:
 	                        data = _a.sent();
-	                        this.registry = data ? JSON.parse(data) : [];
+	                        this.registry = data ? data : [];
 	                        this.sequence = this.registry.length ? this.registry[this.registry.length - 1] : 0;
 	                        return [2 /*return*/];
 	                }
@@ -27209,7 +27210,7 @@
 	    };
 	    Storage.prototype.getRequests = function () {
 	        return __awaiter(this, void 0, void 0, function () {
-	            var data;
+	            var data, result;
 	            return __generator(this, function (_a) {
 	                switch (_a.label) {
 	                    case 0:
@@ -27217,7 +27218,11 @@
 	                        return [4 /*yield*/, this.storage.multiGet(this.registry.map(function (id) { return KEY + id; }))];
 	                    case 1:
 	                        data = _a.sent();
-	                        return [2 /*return*/, data]; //.map(item => JSON.parse(item))
+	                        result = this.registry.reduce(function (acc, id, index) { return data[index] ? acc.concat([__assign({}, data[index], { savedID: id })]) : acc; }, []);
+	                        debugger;
+	                        return [2 /*return*/, result
+	                            // return data
+	                        ];
 	                }
 	            });
 	        });
@@ -27322,6 +27327,7 @@
 	            var _this = this;
 	            return __generator(this, function (_b) {
 	                _a = requestOperand.data, url = _a.url, params = _a.params;
+	                requestID = requestOperand.savedID;
 	                return [2 /*return*/, new Promise(function (resolve) { return __awaiter(_this, void 0, void 0, function () {
 	                        var make;
 	                        var _this = this;
@@ -27329,41 +27335,48 @@
 	                            make = function (debugURL) {
 	                                if (debugURL === void 0) { debugURL = url; }
 	                                return __awaiter(_this, void 0, void 0, function () {
-	                                    var response, error_1;
-	                                    return __generator(this, function (_a) {
-	                                        switch (_a.label) {
+	                                    var response, _a, error_1;
+	                                    return __generator(this, function (_b) {
+	                                        switch (_b.label) {
 	                                            case 0:
 	                                                this.process = true;
 	                                                debugger;
-	                                                _a.label = 1;
+	                                                _b.label = 1;
 	                                            case 1:
-	                                                _a.trys.push([1, 4, , 6]);
+	                                                _b.trys.push([1, 5, , 8]);
 	                                                return [4 /*yield*/, this.request(debugURL, params)];
 	                                            case 2:
-	                                                response = _a.sent();
+	                                                response = _b.sent();
 	                                                this.throwIfNetworkError(response);
 	                                                this.connected = true;
 	                                                requestOperand.resolve(response);
 	                                                // this.removeDeffered()
 	                                                debugger;
 	                                                resolve(response);
+	                                                _a = requestID;
+	                                                if (!_a) return [3 /*break*/, 4];
 	                                                return [4 /*yield*/, this.storage.deleteRequest(requestID)];
 	                                            case 3:
-	                                                _a.sent();
-	                                                return [3 /*break*/, 6];
+	                                                _a = (_b.sent());
+	                                                _b.label = 4;
 	                                            case 4:
-	                                                error_1 = _a.sent();
-	                                                return [4 /*yield*/, this.storage.addRequest(requestOperand.data)];
+	                                                return [3 /*break*/, 8];
 	                                            case 5:
-	                                                requestID = _a.sent();
+	                                                error_1 = _b.sent();
+	                                                if (!(requestID === undefined)) return [3 /*break*/, 7];
+	                                                return [4 /*yield*/, this.storage.addRequest(requestOperand.data)];
+	                                            case 6:
+	                                                requestID = _b.sent();
+	                                                _b.label = 7;
+	                                            case 7:
 	                                                this.connected = false;
 	                                                console.log(error_1);
 	                                                debugger;
 	                                                this.rejectAll();
-	                                                this.createDeffered(function () { return make(debugURL + 1); });
+	                                                this.createDeffered(function () { return make(debugURL - 1); });
 	                                                this.process = false;
-	                                                return [3 /*break*/, 6];
-	                                            case 6: return [2 /*return*/];
+	                                                return [3 /*break*/, 8];
+	                                            case 8: return [2 /*return*/];
 	                                        }
 	                                    });
 	                                });
@@ -27397,7 +27410,7 @@
 	        this.request = //request || 
 	            (function (ok) {
 	                if (ok === void 0) { ok = true; }
-	                return new Promise(function (resolve, reject) { return setTimeout(function () { return ok ? resolve('OK') : reject('bad...'); }, 2000); });
+	                return new Promise(function (resolve, reject) { return setTimeout(function () { return !ok ? resolve('OK') : reject('bad...'); }, 2000); });
 	            });
 	    }
 	    // должна вызываться из приложения, когда сторадж будет готов, и произойдет инициализация пользователя. может быть вызван повторно при смене пользователя
@@ -27420,8 +27433,8 @@
 	                    case 1:
 	                        requests = _a.sent();
 	                        requests.forEach(function (_a) {
-	                            var url = _a.url, params = _a.params;
-	                            var ro = new RequestOperand(url, params);
+	                            var url = _a.url, params = _a.params, savedID = _a.savedID;
+	                            var ro = new RequestOperand(url, params, savedID);
 	                            _this.queue.push(ro);
 	                        });
 	                        this.runner();
@@ -27965,8 +27978,8 @@
 	                }
 	            });
 	        }); };
-	        _this.successSend = function () { return _this.send(1); };
-	        _this.failureSend = function () { return _this.send(0); };
+	        _this.successSend = function () { return _this.send(0); };
+	        _this.failureSend = function () { return _this.send(5); };
 	        _this.badSend = function () { return _this.send(10); };
 	        _this.send = function (success) { return __awaiter(_this, void 0, void 0, function () {
 	            var c, response, error_2;

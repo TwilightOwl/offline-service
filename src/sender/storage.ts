@@ -18,7 +18,7 @@ export default class Storage {
   @aiInit
   private async init() {
     const data = await this.storage.get(REGISTRY_KEY)
-    this.registry = data ? JSON.parse(data) : []
+    this.registry = data ? data : []
     this.sequence = this.registry.length ? this.registry[this.registry.length - 1] : 0
   }
 
@@ -39,7 +39,10 @@ export default class Storage {
   public async getRequests() {
     debugger
     const data = await this.storage.multiGet(this.registry.map(id => KEY + id))
-    return data//.map(item => JSON.parse(item))
+    const result = this.registry.reduce((acc, id, index) => data[index] ? [ ...acc, { ...data[index], savedID: id } ] : acc, [])
+    debugger
+    return result
+    // return data
   }
 
   @aiMethod
