@@ -1,13 +1,15 @@
-// import { queue as queueTool } from 'asynchronous-tools';
+import { aiWithAsyncInit, aiMethod, aiInit } from 'asynchronous-tools';
 
 // import Queue from './queue'
 import RequestOperand from './request-operand'
+import Storage from './storage'
 
 interface Deffered {
   func?: Function,
   timer?: any
 }
 
+@aiWithAsyncInit
 export default class Sender {
 
   private queue: RequestOperand[] = [] // new Queue()
@@ -22,8 +24,9 @@ export default class Sender {
   private deffered: Deffered = {}
   
   constructor ({ request, storage }) {
-    this.storage = storage
+    this._storage = storage
     this.request = //request || 
+
     ((ok = true) => new Promise((resolve, reject) => setTimeout(() => ok ? resolve('OK') : reject('bad...'), 2000)))
   }
 
@@ -31,16 +34,31 @@ export default class Sender {
   // повесить декоратор инициализации, т.к. нельзя вызывать какие-то публичные методы предварительно не загрузив старые неотправленные данные
   // TODO:
   // Придумать как хранить в сторадже запросы, эффективнее будет каждый запрос отдельным ключем с префиксом, реализовать паттерн репозиторий для этого
-  public restoreRequestsFromStorage = () => {
-    // 1. почистить queue - зареджектить висящие промисы
+  @aiInit
+  public async restoreRequestsFromStorage() {
+          // this.finalize
+          // 1. почистить queue - зареджектить висящие промисы
     // 2. залить в queue данные из сторджа
     // 3. стартануть runner
-    // this.storage
+    this.storage = new Storage(this._storage)
+    const requests = await this.storage.getRequests()
+    requests.forEach(({ url, params }) => {
+      const ro = new RequestOperand(url, params)
+      this.queue.push(ro)
+    })
+    this.runner()
   }
 
+  @aiMethod
+  public finalize() {
+    this.queue.forEach(ro => ro.reject('Finalization'))
+  }
 
   // TO CALL FROM UI
-  public send = (url, params) => {
+  @aiMethod
+  public send(url, params) {
+
+    debugger;
 
     const ro = new RequestOperand(url, params)
     this.queue.push(ro);
@@ -94,6 +112,7 @@ export default class Sender {
   private task = async (requestOperand: RequestOperand) => {
     const { url, params } = requestOperand.data
     const key = 'TODO get key from url or params'
+    let requestID;
 
     return new Promise(async resolve => {
 
@@ -108,10 +127,10 @@ export default class Sender {
           // this.removeDeffered()
           debugger;
           resolve(response)
-          await this.storage.delete(key)
+          await this.storage.deleteRequest(requestID)
         } catch (error) {
           
-          await this.storage.set(key, requestOperand.data)
+          requestID = await this.storage.addRequest(requestOperand.data)
           
           this.connected = false
 

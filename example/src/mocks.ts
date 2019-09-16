@@ -14,6 +14,12 @@ export const storage = {
     const item = localStorage.getItem(key);
     return item === null ? item : JSON.parse(item);
   },
+  multiGet: async (keys) => {
+    return Promise.all(keys.map(key => {
+      const item = localStorage.getItem(key);
+      return item === null ? item : JSON.parse(item);
+    }))
+  },
   delete: async (key) => (localStorage.removeItem(key), true)
 }
 

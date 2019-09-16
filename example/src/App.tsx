@@ -86,11 +86,15 @@ class App extends React.Component {
     }
   }
 
+  init = () => service.init()
+
   render() {
     return (
       <div className="App">
         <br/>
         {this.state.result}
+        <br/><br/><br/>
+        <button onClick={this.init}>Init</button>
         <br/><br/><br/>
         <button onClick={this.successSend}>Make success send</button>
         <button onClick={this.failureSend}>Make failure send</button>
