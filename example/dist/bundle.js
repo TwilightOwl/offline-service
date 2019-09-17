@@ -27074,7 +27074,7 @@
 	    PromiseStatus["Rejected"] = "rejected";
 	})(PromiseStatus || (PromiseStatus = {}));
 	var RequestOperand = /** @class */ (function () {
-	    function RequestOperand(url, params, savedID) {
+	    function RequestOperand(url, params, id) {
 	        var _this = this;
 	        this.createPromise = function () {
 	            var resolve, reject, status;
@@ -27111,7 +27111,7 @@
 	        };
 	        this.data = { url: url, params: params };
 	        this.primary = this.createPromise();
-	        this.savedID = savedID;
+	        this.id = id;
 	    }
 	    Object.defineProperty(RequestOperand.prototype, "isNetworkError", {
 	        get: function () {
@@ -27196,7 +27196,7 @@
 	                switch (_a.label) {
 	                    case 0:
 	                        id = this.newID;
-	                        return [4 /*yield*/, this.storage.set(KEY + id, data)];
+	                        return [4 /*yield*/, this.storage.set(KEY + id, { id: id, data: data })];
 	                    case 1:
 	                        _a.sent();
 	                        this.registry.push(id);
@@ -27210,7 +27210,7 @@
 	    };
 	    Storage.prototype.getRequests = function () {
 	        return __awaiter(this, void 0, void 0, function () {
-	            var data, result;
+	            var data;
 	            return __generator(this, function (_a) {
 	                switch (_a.label) {
 	                    case 0:
@@ -27218,10 +27218,9 @@
 	                        return [4 /*yield*/, this.storage.multiGet(this.registry.map(function (id) { return KEY + id; }))];
 	                    case 1:
 	                        data = _a.sent();
-	                        result = this.registry.reduce(function (acc, id, index) { return data[index] ? acc.concat([__assign({}, data[index], { savedID: id })]) : acc; }, []);
-	                        debugger;
-	                        return [2 /*return*/, result
-	                            // return data
+	                        return [2 /*return*/, data
+	                            //const result = this.registry.reduce((acc, id, index) => data[index] ? [ ...acc, { ...data[index], savedID: id } ] : acc, [])
+	                            //return result
 	                        ];
 	                }
 	            });
@@ -27327,7 +27326,8 @@
 	            var _this = this;
 	            return __generator(this, function (_b) {
 	                _a = requestOperand.data, url = _a.url, params = _a.params;
-	                requestID = requestOperand.savedID;
+	                requestID = requestOperand.id;
+	                console.log('task', requestOperand);
 	                return [2 /*return*/, new Promise(function (resolve) { return __awaiter(_this, void 0, void 0, function () {
 	                        var make;
 	                        var _this = this;
@@ -27393,7 +27393,7 @@
 	                clearTimeout(_this.deffered.timer);
 	                console.error('Overwrite old deferred!');
 	            }
-	            _this.deffered = { func: func, timer: setTimeout(_this.runDeffered, 10000) };
+	            _this.deffered = { func: func, timer: setTimeout(_this.runDeffered, 1000) };
 	        };
 	        this.runDeffered = function () {
 	            if (_this.deffered && _this.deffered.func) {
@@ -27433,8 +27433,9 @@
 	                    case 1:
 	                        requests = _a.sent();
 	                        requests.forEach(function (_a) {
-	                            var url = _a.url, params = _a.params, savedID = _a.savedID;
-	                            var ro = new RequestOperand(url, params, savedID);
+	                            var id = _a.id, _b = _a.data, url = _b.url, params = _b.params;
+	                            debugger;
+	                            var ro = new RequestOperand(url, params, id);
 	                            _this.queue.push(ro);
 	                        });
 	                        this.runner();
@@ -27448,25 +27449,40 @@
 	    };
 	    // TO CALL FROM UI
 	    Sender.prototype.send = function (url, params) {
-	        debugger;
-	        var ro = new RequestOperand(url, params);
-	        this.queue.push(ro);
-	        if (!this.connected && !this.idle) {
-	            ro.rejectWithNetworkError();
-	        }
-	        // попытка запуска обработки первого запроса в очереди
-	        // this.launch()
-	        this.runner();
-	        return ro.primaryPromise;
-	        // .catch(error => {
-	        //   if (error.error == 'network error') {
-	        //     this.queue.rejectAll()
-	        //     return error.promise
-	        //   } else {
-	        //     // "хорошая" ошибка безнес логики
-	        //     throw error
-	        //   }
-	        // })
+	        return __awaiter(this, void 0, void 0, function () {
+	            var ro, requestID;
+	            return __generator(this, function (_a) {
+	                switch (_a.label) {
+	                    case 0:
+	                        ro = new RequestOperand(url, params);
+	                        this.queue.push(ro);
+	                        if (!!this.idle) return [3 /*break*/, 2];
+	                        return [4 /*yield*/, this.storage.addRequest(ro.data)];
+	                    case 1:
+	                        requestID = _a.sent();
+	                        ro.id = requestID;
+	                        if (!this.connected) {
+	                            ro.rejectWithNetworkError();
+	                        }
+	                        _a.label = 2;
+	                    case 2:
+	                        // попытка запуска обработки первого запроса в очереди
+	                        // this.launch()
+	                        this.runner();
+	                        return [2 /*return*/, ro.primaryPromise
+	                            // .catch(error => {
+	                            //   if (error.error == 'network error') {
+	                            //     this.queue.rejectAll()
+	                            //     return error.promise
+	                            //   } else {
+	                            //     // "хорошая" ошибка безнес логики
+	                            //     throw error
+	                            //   }
+	                            // })
+	                        ];
+	                }
+	            });
+	        });
 	    };
 	    __decorate([
 	        aiInit,
@@ -27484,7 +27500,7 @@
 	        aiMethod,
 	        __metadata("design:type", Function),
 	        __metadata("design:paramtypes", [Object, Object]),
-	        __metadata("design:returntype", void 0)
+	        __metadata("design:returntype", Promise)
 	    ], Sender.prototype, "send", null);
 	    Sender = __decorate([
 	        aiWithAsyncInit,
@@ -27979,7 +27995,7 @@
 	            });
 	        }); };
 	        _this.successSend = function () { return _this.send(0); };
-	        _this.failureSend = function () { return _this.send(5); };
+	        _this.failureSend = function () { return _this.send(2); };
 	        _this.badSend = function () { return _this.send(10); };
 	        _this.send = function (success) { return __awaiter(_this, void 0, void 0, function () {
 	            var c, response, error_2;
@@ -27992,7 +28008,8 @@
 	                    case 1:
 	                        _a.trys.push([1, 3, , 4]);
 	                        return [4 /*yield*/, service.request(success, {
-	                                requestType: RequestTypes.DataSendRequest
+	                                requestType: RequestTypes.DataSendRequest,
+	                                c: c
 	                            })];
 	                    case 2:
 	                        response = _a.sent();

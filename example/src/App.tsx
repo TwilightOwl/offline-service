@@ -73,7 +73,8 @@ class App extends React.Component {
     const c = this.c;
     try {
       const response = await service.request(success, {   
-        requestType: RequestTypes.DataSendRequest
+        requestType: RequestTypes.DataSendRequest,
+        c
       }) as ResponseWithCacheInfo ;
       console.log('APP', c, response)
     } catch (error) {

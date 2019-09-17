@@ -42,8 +42,9 @@ export default class Sender {
     // 3. стартануть runner
     this.storage = new Storage(this._storage)
     const requests = await this.storage.getRequests()
-    requests.forEach(({ url, params, savedID }) => {
-      const ro = new RequestOperand(url, params, savedID)
+    requests.forEach(({ id, data: { url, params } }) => {
+      debugger;
+      const ro = new RequestOperand(url, params, id)
       this.queue.push(ro)
     })
     this.runner()
@@ -56,17 +57,19 @@ export default class Sender {
 
   // TO CALL FROM UI
   @aiMethod
-  public send(url, params) {
+  public async send(url, params) {
 
-    debugger;
-
-    const ro = new RequestOperand(url, params)
+    const ro = new RequestOperand(url, params)    
     this.queue.push(ro);
 
-
-    if (!this.connected && !this.idle) {
-      ro.rejectWithNetworkError()
+    if (!this.idle) {
+      const requestID = await this.storage.addRequest(ro.data)
+      ro.id = requestID
+      if (!this.connected) {
+        ro.rejectWithNetworkError()
+      }
     }
+
     // попытка запуска обработки первого запроса в очереди
     // this.launch()
     this.runner()
@@ -112,7 +115,8 @@ export default class Sender {
   private task = async (requestOperand: RequestOperand) => {
     const { url, params } = requestOperand.data
     const key = 'TODO get key from url or params'
-    let requestID = requestOperand.savedID
+    let requestID = requestOperand.id
+    console.log('task', requestOperand)
 
     return new Promise(async resolve => {
 
@@ -156,7 +160,7 @@ export default class Sender {
       clearTimeout(this.deffered.timer)
       console.error('Overwrite old deferred!')
     }
-    this.deffered = { func, timer: setTimeout(this.runDeffered, 10000) }
+    this.deffered = { func, timer: setTimeout(this.runDeffered, 1000) }
   }
 
   private runDeffered = () => {

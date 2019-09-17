@@ -29,7 +29,7 @@ export default class Storage {
   @aiMethod
   public async addRequest(data: any) {
     const id = this.newID
-    await this.storage.set(KEY + id, data)
+    await this.storage.set(KEY + id, { id, data })
     this.registry.push(id)
     await this.storage.set(REGISTRY_KEY, this.registry)
     return id
@@ -39,10 +39,9 @@ export default class Storage {
   public async getRequests() {
     debugger
     const data = await this.storage.multiGet(this.registry.map(id => KEY + id))
-    const result = this.registry.reduce((acc, id, index) => data[index] ? [ ...acc, { ...data[index], savedID: id } ] : acc, [])
-    debugger
-    return result
-    // return data
+    return data
+    //const result = this.registry.reduce((acc, id, index) => data[index] ? [ ...acc, { ...data[index], savedID: id } ] : acc, [])
+    //return result
   }
 
   @aiMethod
