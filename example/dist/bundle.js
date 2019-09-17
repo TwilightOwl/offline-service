@@ -27213,15 +27213,10 @@
 	            var data;
 	            return __generator(this, function (_a) {
 	                switch (_a.label) {
-	                    case 0:
-	                        debugger;
-	                        return [4 /*yield*/, this.storage.multiGet(this.registry.map(function (id) { return KEY + id; }))];
+	                    case 0: return [4 /*yield*/, this.storage.multiGet(this.registry.map(function (id) { return KEY + id; }))];
 	                    case 1:
 	                        data = _a.sent();
-	                        return [2 /*return*/, data
-	                            //const result = this.registry.reduce((acc, id, index) => data[index] ? [ ...acc, { ...data[index], savedID: id } ] : acc, [])
-	                            //return result
-	                        ];
+	                        return [2 /*return*/, data];
 	                }
 	            });
 	        });
@@ -27289,10 +27284,6 @@
 	                return __generator(this, function (_a) {
 	                    switch (_a.label) {
 	                        case 0:
-	                            //if (this.process) {
-	                            //  
-	                            //} else {
-	                            debugger;
 	                            if (!this.queue.length) return [3 /*break*/, 4];
 	                            if (!(this.idle || auto)) return [3 /*break*/, 2];
 	                            this.idle = false;
@@ -27340,7 +27331,6 @@
 	                                        switch (_b.label) {
 	                                            case 0:
 	                                                this.process = true;
-	                                                debugger;
 	                                                _b.label = 1;
 	                                            case 1:
 	                                                _b.trys.push([1, 5, , 8]);
@@ -27351,7 +27341,6 @@
 	                                                this.connected = true;
 	                                                requestOperand.resolve(response);
 	                                                // this.removeDeffered()
-	                                                debugger;
 	                                                resolve(response);
 	                                                _a = requestID;
 	                                                if (!_a) return [3 /*break*/, 4];
@@ -27371,7 +27360,6 @@
 	                                            case 7:
 	                                                this.connected = false;
 	                                                console.log(error_1);
-	                                                debugger;
 	                                                this.rejectAll();
 	                                                this.createDeffered(function () { return make(debugURL - 1); });
 	                                                this.process = false;

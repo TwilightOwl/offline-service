@@ -2,7 +2,6 @@ import { aiWithAsyncInit, aiMethod, aiInit } from 'asynchronous-tools';
 
 const KEY = '__offline__'
 const REGISTRY_KEY = KEY + 'registry'
-const SEQUENCE_KEY = KEY + 'sequence'
 
 @aiWithAsyncInit
 export default class Storage {
@@ -37,11 +36,8 @@ export default class Storage {
 
   @aiMethod
   public async getRequests() {
-    debugger
     const data = await this.storage.multiGet(this.registry.map(id => KEY + id))
     return data
-    //const result = this.registry.reduce((acc, id, index) => data[index] ? [ ...acc, { ...data[index], savedID: id } ] : acc, [])
-    //return result
   }
 
   @aiMethod
