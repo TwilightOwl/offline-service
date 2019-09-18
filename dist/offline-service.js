@@ -842,9 +842,9 @@ var Sender = /** @class */ (function () {
 
 var OfflineService$1 = /** @class */ (function () {
     function OfflineService$1(_a) {
-        var request = _a.request, storageAccessors = _a.storageAccessors, getCacheKey = _a.getCacheKey, serializer = _a.serializer;
+        var request = _a.request, storageAccessors = _a.storageAccessors, getCacheKey = _a.getCacheKey, serializer = _a.serializer, _b = _a.requestTimeout, requestTimeout = _b === void 0 ? 1000 : _b;
         var storage = this.storage = new Storage(storageAccessors);
-        this.sender = new Sender({ storage: storage, request: request, serializer: serializer, requestTimeout: 1000 });
+        this.sender = new Sender({ storage: storage, request: request, serializer: serializer, requestTimeout: requestTimeout });
         this.receiver = new OfflineService({ storage: storage, request: request, getCacheKey: getCacheKey, serializer: serializer });
     }
     OfflineService$1.prototype.init = function () {

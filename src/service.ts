@@ -11,7 +11,8 @@ interface Constructor {
     request: Types.HttpRequest,
     storageAccessors: Types.StorageAccessors,
     getCacheKey: Types.GetCacheKey,
-    serializer: Types.Serializer
+    serializer: Types.Serializer,
+    requestTimeout: number
 }
 
 @aiWithAsyncInit
@@ -21,9 +22,9 @@ export default class OfflineService {
     private sender: Sender
     private receiver: Receiver
 
-    constructor({ request, storageAccessors, getCacheKey, serializer }: Constructor) {
+    constructor({ request, storageAccessors, getCacheKey, serializer, requestTimeout = 1000 }: Constructor) {
         const storage = this.storage = new Storage(storageAccessors)
-        this.sender = new Sender({ storage, request, serializer, requestTimeout: 1000 });
+        this.sender = new Sender({ storage, request, serializer, requestTimeout });
         this.receiver = new Receiver({ storage, request, getCacheKey, serializer });
     }
 
