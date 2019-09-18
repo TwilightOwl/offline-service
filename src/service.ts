@@ -4,13 +4,14 @@ import Storage from './storage'
 import Receiver from './receiver'
 import Sender from './sender'
 
-import { HttpRequest, StorageAccessors, GetCacheKey, Serializer, RequestInitWithCacheParameters, RequestTypes } from './types'
+import * as Types from './types'
+import { HttpRequest } from './types'
 
 interface Constructor {
-    request: HttpRequest,
-    storageAccessors: StorageAccessors,
-    getCacheKey: GetCacheKey,
-    serializer: Serializer
+    request: Types.HttpRequest,
+    storageAccessors: Types.StorageAccessors,
+    getCacheKey: Types.GetCacheKey,
+    serializer: Types.Serializer
 }
 
 @aiWithAsyncInit
@@ -28,6 +29,7 @@ export default class OfflineService {
 
     @aiInit
     public init = async () => {
+        debugger
         await this.storage.init()
         await this.sender.restoreRequestsFromStorage()
         await this.receiver.init()
@@ -35,15 +37,15 @@ export default class OfflineService {
     }
 
     @aiMethod
-    public request = async (url: RequestInfo, params: RequestInitWithCacheParameters) => {
+    public async request(url: RequestInfo, params: Types.RequestInitWithCacheParameters) {
         const { 
-            requestType = RequestTypes.DataReceiveRequest, 
+            requestType = Types.RequestTypes.DataReceiveRequest, 
             // requestCacheStrategy = RequestCacheStrategy.CacheFallingBackToNetwork, 
             // refreshCacheStrategy = RefreshCacheStrategy.RefreshAlways,
             ...rest
         } = params;
         debugger
-        return requestType === RequestTypes.DataSendRequest ? await this.sender.send(url, rest) : await this.receiver.receive(url, rest)
+        return requestType === Types.RequestTypes.DataSendRequest ? await this.sender.send(url, rest) : await this.receiver.receive(url, rest)
     }
 
 }

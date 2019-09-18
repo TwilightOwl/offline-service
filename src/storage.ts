@@ -1,14 +1,15 @@
 import { aiWithAsyncInit, aiMethod, aiInit } from 'asynchronous-tools';
-import { StorageAccessors, REGISTRY_KEY, KEY } from './types';
+// import { StorageAccessors, REGISTRY_KEY, KEY } from './types';
+import * as Types from './types';
 
 @aiWithAsyncInit
 export default class Storage {
 
   private sequence = 0
   private registry: number[] = []
-  private storage: StorageAccessors
+  private storage: Types.StorageAccessors
 
-  constructor(storage: StorageAccessors) {
+  constructor(storage: Types.StorageAccessors) {
     this.storage = storage
     // this.init()
   }
@@ -19,7 +20,7 @@ export default class Storage {
 
   @aiInit
   public async init() {
-    const data = (await this.storage.get(REGISTRY_KEY)) as number[]
+    const data = (await this.storage.get(Types.REGISTRY_KEY)) as number[]
     this.registry = data ? data : []
     this.sequence = this.registry.length ? this.registry[this.registry.length - 1] : 0
     console.log('Storage init')
@@ -27,12 +28,12 @@ export default class Storage {
 
   @aiMethod
   public async addCacheItem(key: string, data: any, ttl = 10000) {
-    return this.storage.set(KEY + key, { key, data, until: Date.now() + ttl });
+    return this.storage.set(Types.KEY + key, { key, data, until: Date.now() + ttl });
   }
 
   @aiMethod
   public async getCacheItem(key: string) {
-    const cached = await this.storage.get(KEY + key);
+    const cached = await this.storage.get(Types.KEY + key);
     if (cached === null) {
       return { exist: false }
     } else {
@@ -51,23 +52,23 @@ export default class Storage {
   @aiMethod
   public async addRequest(data: any) {
     const id = this.newID
-    await this.storage.set(KEY + id, { id, data })
+    await this.storage.set(Types.KEY + id, { id, data })
     this.registry.push(id)
-    await this.storage.set(REGISTRY_KEY, this.registry)
+    await this.storage.set(Types.REGISTRY_KEY, this.registry)
     return id
   }
 
   @aiMethod
   public async getRequests() {
-    const data = await this.storage.multiGet(this.registry.map(id => KEY + id))
+    const data = await this.storage.multiGet(this.registry.map(id => Types.KEY + id))
     return data
   }
 
   @aiMethod
   public async deleteRequest(id: number) {
-    await this.storage.delete(KEY + id)
+    await this.storage.delete(Types.KEY + id)
     this.registry = this.registry.filter(item => item !== id)
-    await this.storage.set(REGISTRY_KEY, this.registry)
+    await this.storage.set(Types.REGISTRY_KEY, this.registry)
   }
 
 }

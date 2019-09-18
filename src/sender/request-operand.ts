@@ -1,4 +1,4 @@
-import { SenderEndpoint, SenderRequestInit } from "../types"
+import * as Types from "../types"
 
 enum PromiseStatus {
   Pending = 'pending',
@@ -9,8 +9,8 @@ enum PromiseStatus {
 const NETWORK_ERROR = 'network error'
 
 interface Data {
-  url: SenderEndpoint,
-  params: SenderRequestInit
+  url: Types.SenderEndpoint,
+  params: Types.SenderRequestInit
 }
 
 interface PromiseObject {
@@ -27,7 +27,7 @@ export default class RequestOperand {
   private secondary?: PromiseObject
   public id?: number
 
-  constructor(url: SenderEndpoint, params: SenderRequestInit, id?: number) {
+  constructor(url: Types.SenderEndpoint, params: Types.SenderRequestInit, id?: number) {
     this.data = { url, params }
     this.primary = this.createPromise()
     this.id = id

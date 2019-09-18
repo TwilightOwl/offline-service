@@ -17,7 +17,7 @@ const config = {
       'react-dom': 'ReactDOM'
     },
   },
-  external: ['react', 'react-dom'], 
+  external: ['react', 'react-dom', 'asynchronous-tools'], 
   plugins: [
     postcss({
       plugins: []

@@ -2,7 +2,7 @@ import { aiWithAsyncInit, aiMethod, aiInit } from 'asynchronous-tools';
 
 import Storage from '../storage'
 import RequestOperand from './request-operand'
-import { SenderStorageItem, HttpRequest, SenderEndpoint, SenderRequestInit, Serializer } from '../types';
+import * as Types from '../types';
 
 interface Deffered {
   func?: Function,
@@ -10,9 +10,9 @@ interface Deffered {
 }
 
 interface Constructor {
-  request: HttpRequest,
+  request: Types.HttpRequest,
   storage: Storage,
-  serializer: Serializer,
+  serializer: Types.Serializer,
   requestTimeout: number
 }
 
@@ -27,7 +27,7 @@ export default class Sender {
 
   private request: any
   private storage: any
-  private serializer: Serializer
+  private serializer: Types.Serializer
   private requestTimeout: number
 
   private deffered: Deffered = {}
@@ -44,7 +44,7 @@ export default class Sender {
   // повесить декоратор инициализации, т.к. нельзя вызывать какие-то публичные методы предварительно не загрузив старые неотправленные данные
   @aiInit
   public async restoreRequestsFromStorage() {
-    const requests = (await this.storage.getRequests()) as SenderStorageItem[]
+    const requests = (await this.storage.getRequests()) as Types.SenderStorageItem[]
     requests.forEach(({ id, data: { url, params } }) => {
       const ro = new RequestOperand(url, params, id)
       this.queue.push(ro)
@@ -59,7 +59,7 @@ export default class Sender {
   }
 
   @aiMethod
-  public async send(url: SenderEndpoint, params: SenderRequestInit) {
+  public async send(url: Types.SenderEndpoint, params: Types.SenderRequestInit) {
 
     const ro = new RequestOperand(url, params)    
     this.queue.push(ro);
