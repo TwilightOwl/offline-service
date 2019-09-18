@@ -85,9 +85,9 @@ export default class Sender {
         setTimeout(() => this.runner(true), 0)
       } else {
         if (this.process) {
-          console.log('Nothing')
+          //console.log('Nothing')
         } else {
-          console.log('runDeffered')
+          //console.log('runDeffered')
           this.runDeffered()
         }
       }
@@ -101,7 +101,7 @@ export default class Sender {
     const { url, params } = requestOperand.data
     const key = 'TODO get key from url or params'
     let requestID = requestOperand.id
-    console.log('task', requestOperand)
+    //console.log('task', requestOperand)
 
     return new Promise(async resolve => {
 
@@ -125,7 +125,7 @@ export default class Sender {
             requestID = await this.storage.addRequest(requestOperand.data)
           }
           this.connected = false
-          console.log(error)
+          //console.log(error)
           this.rejectAll()
           // this.createDeffered(() => make(debugURL - 1))
           this.createDeffered(() => make(debugURL))
@@ -156,7 +156,7 @@ export default class Sender {
       this.deffered = {}
       func()
     } else {
-      console.error('Run unexisted deferred!')
+      //console.error('Run unexisted deferred!')
     }
   }
 

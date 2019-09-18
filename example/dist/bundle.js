@@ -27131,7 +27131,6 @@
 	                        data = (_a.sent());
 	                        this.registry = data ? data : [];
 	                        this.sequence = this.registry.length ? this.registry[this.registry.length - 1] : 0;
-	                        console.log('Storage init');
 	                        return [2 /*return*/];
 	                }
 	            });
@@ -27651,11 +27650,9 @@
 	                            setTimeout(function () { return _this.runner(true); }, 0);
 	                            return [3 /*break*/, 3];
 	                        case 2:
-	                            if (this.process) {
-	                                console.log('Nothing');
-	                            }
+	                            if (this.process) ;
 	                            else {
-	                                console.log('runDeffered');
+	                                //console.log('runDeffered')
 	                                this.runDeffered();
 	                            }
 	                            _a.label = 3;
@@ -27675,7 +27672,7 @@
 	            return __generator(this, function (_b) {
 	                _a = requestOperand.data, url = _a.url, params = _a.params;
 	                requestID = requestOperand.id;
-	                console.log('task', requestOperand);
+	                //console.log('task', requestOperand)
 	                return [2 /*return*/, new Promise(function (resolve) { return __awaiter(_this, void 0, void 0, function () {
 	                        var make;
 	                        var _this = this;
@@ -27722,7 +27719,7 @@
 	                                                _d.label = 8;
 	                                            case 8:
 	                                                this.connected = false;
-	                                                console.log(error_1);
+	                                                //console.log(error)
 	                                                this.rejectAll();
 	                                                // this.createDeffered(() => make(debugURL - 1))
 	                                                this.createDeffered(function () { return make(debugURL); });
@@ -27753,9 +27750,6 @@
 	                var func = _this.deffered.func;
 	                _this.deffered = {};
 	                func();
-	            }
-	            else {
-	                console.error('Run unexisted deferred!');
 	            }
 	        };
 	        this.storage = storage;
@@ -27857,10 +27851,11 @@
 	                        return [4 /*yield*/, this.sender.restoreRequestsFromStorage()];
 	                    case 2:
 	                        _a.sent();
-	                        return [4 /*yield*/, this.receiver.init()];
+	                        return [4 /*yield*/, this.receiver.init()
+	                            //console.log('Service init')
+	                        ];
 	                    case 3:
 	                        _a.sent();
-	                        console.log('Service init');
 	                        return [2 /*return*/];
 	                }
 	            });
@@ -27873,7 +27868,6 @@
 	                switch (_c.label) {
 	                    case 0:
 	                        _a = params.requestType, requestType = _a === void 0 ? RequestTypes.DataReceiveRequest : _a, rest = __rest(params, ["requestType"]);
-	                        debugger;
 	                        if (!(requestType === RequestTypes.DataSendRequest)) return [3 /*break*/, 2];
 	                        return [4 /*yield*/, this.sender.send(url, rest)];
 	                    case 1:
@@ -27908,8 +27902,7 @@
 	    return OfflineService$1;
 	}());
 
-	console.log('RequestCacheStrategy.NetworkFallingBackToCache', RequestCacheStrategy.NetworkFallingBackToCache);
-	var service = new OfflineService$1({ request: request, storage: storage, getCacheKey: getCacheKey, serializer: function (response) { return response.text(); } });
+	var service = new OfflineService$1({ request: request, storageAccessors: storage, getCacheKey: getCacheKey, serializer: function (response) { return response.text(); } });
 	var App = /** @class */ (function (_super) {
 	    __extends(App, _super);
 	    function App() {
@@ -27960,6 +27953,8 @@
 	                        _a.label = 1;
 	                    case 1:
 	                        _a.trys.push([1, 3, , 4]);
+	                        console.log(RequestTypes.DataSendRequest);
+	                        debugger;
 	                        return [4 /*yield*/, service.request(success, {
 	                                requestType: RequestTypes.DataSendRequest,
 	                                c: c

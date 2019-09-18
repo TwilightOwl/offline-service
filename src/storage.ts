@@ -23,7 +23,7 @@ export default class Storage {
     const data = (await this.storage.get(Types.REGISTRY_KEY)) as number[]
     this.registry = data ? data : []
     this.sequence = this.registry.length ? this.registry[this.registry.length - 1] : 0
-    console.log('Storage init')
+    //console.log('Storage init')
   }
 
   @aiMethod

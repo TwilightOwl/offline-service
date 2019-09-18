@@ -28,12 +28,11 @@ export default class OfflineService {
     }
 
     @aiInit
-    public init = async () => {
-        debugger
+    public async init() {
         await this.storage.init()
         await this.sender.restoreRequestsFromStorage()
         await this.receiver.init()
-        console.log('Service init')
+        //console.log('Service init')
     }
 
     @aiMethod
@@ -44,7 +43,6 @@ export default class OfflineService {
             // refreshCacheStrategy = RefreshCacheStrategy.RefreshAlways,
             ...rest
         } = params;
-        debugger
         return requestType === Types.RequestTypes.DataSendRequest ? await this.sender.send(url, rest) : await this.receiver.receive(url, rest)
     }
 

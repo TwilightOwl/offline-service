@@ -10,7 +10,7 @@ import OfflineService, {
   ResponseWithCacheInfo 
 } from '../../src';
 
-const service = new OfflineService({ request, storage, getCacheKey, serializer: response => response.text() });
+const service = new OfflineService({ request, storageAccessors: storage, getCacheKey, serializer: response => response.text() });
 
 class App extends React.Component {
 
@@ -72,6 +72,8 @@ class App extends React.Component {
     this.c = (this.c || 0) + 1;
     const c = this.c;
     try {
+      console.log(RequestTypes.DataSendRequest)
+      debugger
       const response = await service.request(success, {   
         requestType: RequestTypes.DataSendRequest,
         c

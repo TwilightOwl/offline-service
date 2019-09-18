@@ -140,7 +140,6 @@ var Storage = /** @class */ (function () {
                         data = (_a.sent());
                         this.registry = data ? data : [];
                         this.sequence = this.registry.length ? this.registry[this.registry.length - 1] : 0;
-                        console.log('Storage init');
                         return [2 /*return*/];
                 }
             });
@@ -658,11 +657,9 @@ var Sender = /** @class */ (function () {
                             setTimeout(function () { return _this.runner(true); }, 0);
                             return [3 /*break*/, 3];
                         case 2:
-                            if (this.process) {
-                                console.log('Nothing');
-                            }
+                            if (this.process) ;
                             else {
-                                console.log('runDeffered');
+                                //console.log('runDeffered')
                                 this.runDeffered();
                             }
                             _a.label = 3;
@@ -682,7 +679,7 @@ var Sender = /** @class */ (function () {
             return __generator(this, function (_b) {
                 _a = requestOperand.data, url = _a.url, params = _a.params;
                 requestID = requestOperand.id;
-                console.log('task', requestOperand);
+                //console.log('task', requestOperand)
                 return [2 /*return*/, new Promise(function (resolve) { return __awaiter(_this, void 0, void 0, function () {
                         var make;
                         var _this = this;
@@ -729,7 +726,7 @@ var Sender = /** @class */ (function () {
                                                 _d.label = 8;
                                             case 8:
                                                 this.connected = false;
-                                                console.log(error_1);
+                                                //console.log(error)
                                                 this.rejectAll();
                                                 // this.createDeffered(() => make(debugURL - 1))
                                                 this.createDeffered(function () { return make(debugURL); });
@@ -760,9 +757,6 @@ var Sender = /** @class */ (function () {
                 var func = _this.deffered.func;
                 _this.deffered = {};
                 func();
-            }
-            else {
-                console.error('Run unexisted deferred!');
             }
         };
         this.storage = storage;
@@ -848,9 +842,13 @@ var Sender = /** @class */ (function () {
 
 var OfflineService$1 = /** @class */ (function () {
     function OfflineService$1(_a) {
-        var _this = this;
         var request = _a.request, storageAccessors = _a.storageAccessors, getCacheKey = _a.getCacheKey, serializer = _a.serializer;
-        this.init = function () { return __awaiter(_this, void 0, void 0, function () {
+        var storage = this.storage = new Storage(storageAccessors);
+        this.sender = new Sender({ storage: storage, request: request, serializer: serializer, requestTimeout: 1000 });
+        this.receiver = new OfflineService({ storage: storage, request: request, getCacheKey: getCacheKey, serializer: serializer });
+    }
+    OfflineService$1.prototype.init = function () {
+        return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.storage.init()];
@@ -859,18 +857,16 @@ var OfflineService$1 = /** @class */ (function () {
                         return [4 /*yield*/, this.sender.restoreRequestsFromStorage()];
                     case 2:
                         _a.sent();
-                        return [4 /*yield*/, this.receiver.init()];
+                        return [4 /*yield*/, this.receiver.init()
+                            //console.log('Service init')
+                        ];
                     case 3:
                         _a.sent();
-                        console.log('Service init');
                         return [2 /*return*/];
                 }
             });
-        }); };
-        var storage = this.storage = new Storage(storageAccessors);
-        this.sender = new Sender({ storage: storage, request: request, serializer: serializer, requestTimeout: 1000 });
-        this.receiver = new OfflineService({ storage: storage, request: request, getCacheKey: getCacheKey, serializer: serializer });
-    }
+        });
+    };
     OfflineService$1.prototype.request = function (url, params) {
         return __awaiter(this, void 0, void 0, function () {
             var _a, requestType, rest, _b;
@@ -878,7 +874,6 @@ var OfflineService$1 = /** @class */ (function () {
                 switch (_c.label) {
                     case 0:
                         _a = params.requestType, requestType = _a === void 0 ? RequestTypes.DataReceiveRequest : _a, rest = __rest(params, ["requestType"]);
-                        debugger;
                         if (!(requestType === RequestTypes.DataSendRequest)) return [3 /*break*/, 2];
                         return [4 /*yield*/, this.sender.send(url, rest)];
                     case 1:
@@ -895,8 +890,10 @@ var OfflineService$1 = /** @class */ (function () {
     };
     __decorate([
         aiInit,
-        __metadata("design:type", Object)
-    ], OfflineService$1.prototype, "init", void 0);
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", Promise)
+    ], OfflineService$1.prototype, "init", null);
     __decorate([
         aiMethod,
         __metadata("design:type", Function),
