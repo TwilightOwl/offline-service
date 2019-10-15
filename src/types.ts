@@ -1,31 +1,50 @@
-export const KEY = '__offline__'
-export const REGISTRY_KEY = KEY + 'registry'
+export const KEY = '_' // '__offline__'
+export const REGISTRY_KEY = KEY + 'reg' // 'registry'
+export const SENDER_RESPONSE_KEY = KEY + 's_' // 'send__'
+export const FUTURE_OBJECT_QUOTE = '~*foq*~'
+export const FUTURE_ID_QUOTE = '*~fiq~*'
+export const USED_RESPONSES_REGISTRY_KEY = KEY + 'urr' // 'used_responses_registry'
 
-type RegistryKey1 = '__offline__registry'
-type RegistryKey = typeof REGISTRY_KEY
+export const NETWORK_ERROR = 'NetworkError'
+export const NETWORK_ERROR_STATUS = 2
+export const SERVICE_ERROR = 'OfflineServiceError'
+export const SERVICE_ERROR_STATUS = 1
+
+// type RegistryKey1 = '__offline__registry'
+// type RegistryKey = typeof REGISTRY_KEY
 
 export enum RefreshCacheStrategy {
-  RefreshWhenExpired,
-  RefreshAlways,
-  NoStore
+  RefreshWhenExpired = 'refresh-when-expired',
+  RefreshAlways = 'refresh-always',
+  NoStore = 'no-store'
 }
 
 export enum RequestCacheStrategy {
-  CacheOnly,
-  NetworkOnly,
-  CacheFallingBackToNetwork,
-  NetworkFallingBackToCache,
-  CacheThenNetwork
+  CacheOnly = 'cache-only',
+  NetworkOnly = 'network-only',
+  CacheFallingBackToNetwork = 'cache-falling-back-to-network',
+  NetworkFallingBackToCache = 'network-falling-back-to-cache',
+  CacheThenNetwork = 'cache-then-network'
 }
 
 export enum RequestTypes {
-  DataSendRequest,
-  DataReceiveRequest
+  DataSendRequest = 'send',
+  DataReceiveRequest = 'receive'
 }
 
-export interface RequestInitWithCacheParameters extends RequestInit {
-  refreshCacheStrategy?: RefreshCacheStrategy,
-  requestCacheStrategy?: RequestCacheStrategy,
+export interface ReceiverDefaultParameters {
+  refreshCacheStrategy: RefreshCacheStrategy,
+  requestCacheStrategy: RequestCacheStrategy,
+  ttl: number
+}
+
+export interface SenderDefaultParameters {
+  requestTimeout: number
+}
+
+export interface RequestInitWithCacheParameters extends RequestInit, ReceiverDefaultParameters {
+  // refreshCacheStrategy?: RefreshCacheStrategy,
+  // requestCacheStrategy?: RequestCacheStrategy,
   requestType?: RequestTypes
 }
 
@@ -62,7 +81,7 @@ export enum CachingResult {
   NotUpdated
 }
 
-export type CachingFunction = (url: RequestInfo, params: RequestInit | undefined, data: any, cacheStatus?: CacheStatus) => Promise<CachingResult>;
+export type CachingFunction = (url: RequestInfo, params: RequestInit | undefined, data: any, cacheStatus?: CacheStatus, ttl?: number) => Promise<CachingResult>;
 
 export interface CacheThenNetworkRequestStrategyResult {
   cached?: ResponseWithCacheInfo,
@@ -81,11 +100,14 @@ export interface CachedItem {
 
 export type SenderEndpoint = RequestInfo | string
 
-export type SenderRequestInit = RequestInit
+export interface SenderRequestInit extends RequestInit, SenderDefaultParameters {
+  requestType?: RequestTypes
+}
 
 export interface SenderStorageItemData {
   url: SenderEndpoint,
-  params: SenderRequestInit
+  params: SenderRequestInit,
+  uid: UID
 }
 
 export interface SenderStorageItem {
@@ -93,18 +115,28 @@ export interface SenderStorageItem {
   data: SenderStorageItemData
 }
 
+//TODO: add methods
 export interface StorageAccessors {
-  //TODO: return result 
-  set: 
-    ((key: string, data: CachedItem | SenderStorageItem | any) => Promise<boolean>),
-    //| ((key: RegistryKey, data: number[]) => Promise<boolean>),
-  get: 
-    ((key: string) => Promise<null | CachedItem | SenderStorageItem | any>),
-    //| ((key: RegistryKey) => Promise<number[]>),
+  set: ((key: string, data: CachedItem | SenderStorageItem | any) => Promise<boolean>),
+  get: ((key: string) => Promise<null | CachedItem | SenderStorageItem | any>),
   multiGet: (keys: string[]) => Promise<(null | CachedItem | SenderStorageItem)[]>,
-  delete: (key: string) => Promise<boolean>,
+  remove: (key: string) => Promise<boolean>,
 }
 
 export type GetCacheKey = (url: RequestInfo, params?: RequestInit) => string;
 
-export type Serializer = (response: Response) => any;
+export type UID = string;
+
+export interface UsedResponseRegistry {
+  [requesterUID: string]: UID[]
+}
+
+export type CreateError = (arg: { name: string, message: string, status: string | number }) => any;
+
+export type ThrowNetworkError = () => void;
+
+export type RequestPromise = Promise<Response>;
+
+export type RequestHandler = (arg: { throwNetworkError: ThrowNetworkError, requestPromise: RequestPromise }) => any;
+
+//TODO: export types from module
