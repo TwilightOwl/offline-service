@@ -13,16 +13,7 @@ interface Constructor {
   requestHandler: Types.RequestHandler,
   createError: Types.CreateError,
   // requestTimeout: number,
-  defaultParameters: {
-    send: {
-      requestTimeout: number,
-    },
-    receive: {
-      refreshCacheStrategy: Types.RefreshCacheStrategy,
-      requestCacheStrategy: Types.RequestCacheStrategy,
-      ttl: number
-    }
-  }
+  defaultParameters?: Types.DefaultParameters
 }
 
 @aiWithAsyncInit
@@ -34,12 +25,12 @@ export default class OfflineService {
 
   constructor({ request, storageAccessors, getCacheKey, defaultParameters, requestHandler, createError }: Constructor) {
     const storage = this.storage = new Storage(storageAccessors)
-    const { requestTimeout } = (defaultParameters || {}).send || { requestTimeout: 10000 }
-    const { refreshCacheStrategy, requestCacheStrategy, ttl } = (defaultParameters || {}).receive || { 
-      refreshCacheStrategy: Types.RefreshCacheStrategy.RefreshAlways,
-      requestCacheStrategy: Types.RequestCacheStrategy.CacheFallingBackToNetwork,
-      ttl: 10000
-    }
+    const { requestTimeout = 10000 } = (defaultParameters || {}).send || {}
+    const { 
+      refreshCacheStrategy = Types.RefreshCacheStrategy.RefreshAlways, 
+      requestCacheStrategy = Types.RequestCacheStrategy.CacheFallingBackToNetwork, 
+      ttl = 10000
+    } = (defaultParameters || {}).receive || {}
 
     this.sender = new Sender({ storage, request, requestHandler, createError,
       defaultParameters: { requestTimeout }

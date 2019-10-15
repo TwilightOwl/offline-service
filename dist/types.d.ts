@@ -24,10 +24,14 @@ export declare enum RequestTypes {
     DataSendRequest = "send",
     DataReceiveRequest = "receive"
 }
-export interface ReceiverDefaultParameters extends ReceiverLifecycleHandlers {
+export interface ReceiverDefaultParameters {
     refreshCacheStrategy: RefreshCacheStrategy;
     requestCacheStrategy: RequestCacheStrategy;
     ttl: number;
+}
+export interface DefaultParameters {
+    send?: SenderDefaultParameters;
+    receive?: ReceiverDefaultParameters;
 }
 export interface ReceiverResponseWithCacheInfo extends ResponseWithCacheInfo {
     [k: string]: any;
@@ -47,7 +51,7 @@ export interface ReceiverLifecycleHandlers {
     onLoading?: (arg: ReceiverOnLoadingHandlerArgument) => any;
     onFinally?: () => any;
 }
-export interface RequestInitWithCacheParameters extends RequestInit, ReceiverDefaultParameters {
+export interface RequestInitWithCacheParameters extends RequestInit, ReceiverDefaultParameters, ReceiverLifecycleHandlers {
     requestType?: RequestTypes;
 }
 export declare enum CacheStatus {
@@ -88,11 +92,11 @@ export interface CachedItem {
     data: any;
     until: number;
 }
-export interface SenderDefaultParameters extends SenderLifecycleHandlers {
+export interface SenderDefaultParameters {
     requestTimeout: number;
 }
 export declare type SenderEndpoint = RequestInfo | string;
-export interface SenderRequestInit extends RequestInit, SenderDefaultParameters {
+export interface SenderRequestInit extends RequestInit, SenderDefaultParameters, SenderLifecycleHandlers {
     requestType?: RequestTypes;
 }
 export interface SenderStorageItemData {

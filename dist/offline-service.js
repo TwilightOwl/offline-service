@@ -1230,12 +1230,8 @@ var OfflineService$1 = /** @class */ (function () {
     function OfflineService$1(_a) {
         var request = _a.request, storageAccessors = _a.storageAccessors, getCacheKey = _a.getCacheKey, defaultParameters = _a.defaultParameters, requestHandler = _a.requestHandler, createError = _a.createError;
         var storage = this.storage = new Storage(storageAccessors);
-        var requestTimeout = ((defaultParameters || {}).send || { requestTimeout: 10000 }).requestTimeout;
-        var _b = (defaultParameters || {}).receive || {
-            refreshCacheStrategy: RefreshCacheStrategy.RefreshAlways,
-            requestCacheStrategy: RequestCacheStrategy.CacheFallingBackToNetwork,
-            ttl: 10000
-        }, refreshCacheStrategy = _b.refreshCacheStrategy, requestCacheStrategy = _b.requestCacheStrategy, ttl = _b.ttl;
+        var _b = ((defaultParameters || {}).send || {}).requestTimeout, requestTimeout = _b === void 0 ? 10000 : _b;
+        var _c = (defaultParameters || {}).receive || {}, _d = _c.refreshCacheStrategy, refreshCacheStrategy = _d === void 0 ? RefreshCacheStrategy.RefreshAlways : _d, _e = _c.requestCacheStrategy, requestCacheStrategy = _e === void 0 ? RequestCacheStrategy.CacheFallingBackToNetwork : _e, _f = _c.ttl, ttl = _f === void 0 ? 10000 : _f;
         this.sender = new Sender({ storage: storage, request: request, requestHandler: requestHandler, createError: createError,
             defaultParameters: { requestTimeout: requestTimeout }
         });

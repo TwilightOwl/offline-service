@@ -32,10 +32,15 @@ export enum RequestTypes {
   DataReceiveRequest = 'receive'
 }
 
-export interface ReceiverDefaultParameters extends ReceiverLifecycleHandlers {
+export interface ReceiverDefaultParameters {
   refreshCacheStrategy: RefreshCacheStrategy,
   requestCacheStrategy: RequestCacheStrategy,
   ttl: number
+}
+
+export interface DefaultParameters {
+  send?: SenderDefaultParameters,
+  receive?: ReceiverDefaultParameters
 }
 
 export interface ReceiverResponseWithCacheInfo extends ResponseWithCacheInfo {
@@ -61,9 +66,7 @@ export interface ReceiverLifecycleHandlers {
   onFinally?: () => any
 }
 
-export interface RequestInitWithCacheParameters extends RequestInit, ReceiverDefaultParameters {
-  // refreshCacheStrategy?: RefreshCacheStrategy,
-  // requestCacheStrategy?: RequestCacheStrategy,
+export interface RequestInitWithCacheParameters extends RequestInit, ReceiverDefaultParameters, ReceiverLifecycleHandlers {
   requestType?: RequestTypes
 }
 
@@ -122,13 +125,13 @@ export interface CachedItem {
 
 
 
-export interface SenderDefaultParameters extends SenderLifecycleHandlers {
+export interface SenderDefaultParameters {
   requestTimeout: number
 }
 
 export type SenderEndpoint = RequestInfo | string
 
-export interface SenderRequestInit extends RequestInit, SenderDefaultParameters {
+export interface SenderRequestInit extends RequestInit, SenderDefaultParameters, SenderLifecycleHandlers {
   requestType?: RequestTypes
 }
 

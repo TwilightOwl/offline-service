@@ -5,16 +5,7 @@ interface Constructor {
     getCacheKey: Types.GetCacheKey;
     requestHandler: Types.RequestHandler;
     createError: Types.CreateError;
-    defaultParameters: {
-        send: {
-            requestTimeout: number;
-        };
-        receive: {
-            refreshCacheStrategy: Types.RefreshCacheStrategy;
-            requestCacheStrategy: Types.RequestCacheStrategy;
-            ttl: number;
-        };
-    };
+    defaultParameters?: Types.DefaultParameters;
 }
 export default class OfflineService {
     private storage;
