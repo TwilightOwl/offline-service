@@ -82,11 +82,11 @@ export default class Sender {
   public async send(url: Types.SenderEndpoint, params: Types.SenderRequestInit) {
 
     const {
-      requestTimeout, 
-      onSuccess,
-      onLoading,
-      onError,
-      onFinally,
+      requestTimeout = undefined,
+      onSuccess = undefined,
+      onLoading = undefined,
+      onError = undefined,
+      onFinally = undefined,
       ...restParams 
     } = params || {};
 
@@ -114,7 +114,7 @@ export default class Sender {
       }
     }
 
-    TODO: доделать исправление типов в sender, request-operand и т.п. 
+    // TODO: доделать исправление типов в sender, request-operand и т.п. 
 
     this.runner()
     return ro.primaryPromise
@@ -156,7 +156,7 @@ export default class Sender {
         try {
           let result, error
           try {
-            const resolvedResponses = await this.storage.getResolvedResponses(uid);
+            const resolvedResponses: Types.ResolvedResponses[] = await this.storage.getResolvedResponses(uid);
             let decoded
             try {
               decoded = (resolvedResponses || []).reduce(({ url, restParams }, { uid, result, error }) => ({

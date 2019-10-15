@@ -167,6 +167,12 @@ export interface SenderLifecycleHandlers {
   onFinally?: () => any
 }
 
+export enum LifecycleHandlerNames {
+  onSuccess = 'onSuccess',
+  onError = 'onError',
+  onLoading = 'onLoading',
+  onFinally = 'onFinally',
+}
 
 //TODO: add methods
 export interface StorageAccessors {
@@ -174,6 +180,8 @@ export interface StorageAccessors {
   get: ((key: string) => Promise<null | CachedItem | SenderStorageItem | any>),
   multiGet: (keys: string[]) => Promise<(null | CachedItem | SenderStorageItem)[]>,
   remove: (key: string) => Promise<boolean>,
+  multiRemove: (keys: string[]) => Promise<boolean>,
+  getAllKeys: () => Promise<string[]>
 }
 
 export type GetCacheKey = (url: RequestInfo, params?: RequestInit) => string;
@@ -182,6 +190,12 @@ export type UID = string;
 
 export interface UsedResponseRegistry {
   [requesterUID: string]: UID[]
+}
+
+export interface ResolvedResponses {
+  uid: UID,
+  result?: any,
+  error?: any
 }
 
 export type CreateError = (arg: { name: string, message: string, status: string | number, [k: string]: any }) => any;

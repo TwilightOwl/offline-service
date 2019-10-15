@@ -46,10 +46,10 @@ export default class OfflineService {
 
   private networkOnlyRequest: Types.RequestFunction = async (url, params) => {
     const {
-      onSuccess,
-      onLoading,
-      onError,
-      onFinally,
+      onSuccess = undefined,
+      onLoading = undefined,
+      onError = undefined,
+      onFinally = undefined,
       ...restParams
     } = params || {}
     try {
@@ -80,10 +80,10 @@ export default class OfflineService {
   
   private cacheOnlyRequest: Types.RequestFunction = async (url, params) => {
     const {
-      onSuccess,
-      onLoading,
-      onError,
-      onFinally,
+      onSuccess = undefined,
+      onLoading = undefined,
+      onError = undefined,
+      onFinally = undefined,
       ...restParams
     } = params || {}
 

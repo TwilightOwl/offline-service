@@ -133,18 +133,18 @@ export default class Storage {
   }
 
   @aiMethod
-  public async getResolvedResponses(uid: string) {
+  public async getResolvedResponses(uid: string): Promise<Types.ResolvedResponses[]> {
     const usedResponseRegistry = await this.getUsedResponseRegistry();
     const usedResponseUIDs = usedResponseRegistry[uid] || [];
     const result = await Promise.all(usedResponseUIDs
-      .map(usedUID => this.storage.get(Types.SENDER_RESPONSE_KEY + usedUID)));
+      .map(usedUID => this.storage.get(Types.SENDER_RESPONSE_KEY + usedUID) as Promise<Types.ResolvedResponses>));
     return result;
   }
 
   private async cleanSenderData() {
     const usedResponseRegistry = await this.getUsedResponseRegistry();
     const used = Object.keys(usedResponseRegistry)
-      .reduce((acc, key) => [ ...acc, key, ...(usedResponseRegistry[key] || []) ], []);
+      .reduce((acc, key) => [ ...acc, key, ...(usedResponseRegistry[key] || []) ], [] as string[]);
     const keys = await this.storage.getAllKeys();
     const unusedKeys = keys.filter(key => {
       return key.substr(0, Types.SENDER_RESPONSE_KEY.length) === Types.SENDER_RESPONSE_KEY

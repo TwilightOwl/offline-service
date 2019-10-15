@@ -22,7 +22,12 @@ export default class RequestOperand {
   private secondary?: PromiseObject
   public id?: number
   
-  constructor(url: Types.SenderEndpoint, params: Types.SenderRequestInit, id?: number, uid?: string) {
+  constructor(
+    url: Types.SenderEndpoint, 
+    params: Omit<Types.SenderRequestInit, 'onFinally'> & { onFinally: (uid: string) => any }, 
+    id?: number, 
+    uid?: string
+  ) {
     this.data = { 
       url, 
       params,
@@ -31,31 +36,31 @@ export default class RequestOperand {
     this.primary = this.createPromise()
     this.id = id
     
-    this.launch('onLoading', { loading: true, deferred: false })
+    this.launch(Types.LifecycleHandlerNames.onLoading, { loading: true, deferred: false })
 
     this.primary.promise = this.primary.promise
       .then(data => {
-        this.launch('onSuccess', { ...data, deferred: false })
-        this.launch('onLoading', { loading: false, deferred: false })
-        this.launch('onFinally', this.data.uid)
+        this.launch(Types.LifecycleHandlerNames.onSuccess, { ...data, deferred: false })
+        this.launch(Types.LifecycleHandlerNames.onLoading, { loading: false, deferred: false })
+        this.launch(Types.LifecycleHandlerNames.onFinally, this.data.uid)
         return { ...data, deferred: false }
       }).catch(error => {
-        this.launch('onLoading', { loading: false, deferred: false })
+        this.launch(Types.LifecycleHandlerNames.onLoading, { loading: false, deferred: false })
         const isNetworkError = error.name === Types.NETWORK_ERROR
-        if(!this.launch('onError', { ...error, isNetworkError, getFutureResponse: encoder(this.data.uid) })) {
-          isNetworkError ? this.launch('onLoading', { loading: true, deferred: true }) : this.launch('onFinally', this.data.uid)
+        if(!this.launch(Types.LifecycleHandlerNames.onError, { ...error, isNetworkError, getFutureResponse: encoder(this.data.uid) })) {
+          isNetworkError ? this.launch(Types.LifecycleHandlerNames.onLoading, { loading: true, deferred: true }) : this.launch(Types.LifecycleHandlerNames.onFinally, this.data.uid)
           throw { ...error, isNetworkError }
         } else {
-          isNetworkError ? this.launch('onLoading', { loading: true, deferred: true }) : this.launch('onFinally', this.data.uid)
+          isNetworkError ? this.launch(Types.LifecycleHandlerNames.onLoading, { loading: true, deferred: true }) : this.launch(Types.LifecycleHandlerNames.onFinally, this.data.uid)
         }
       })
   }
 
-  private launch = (handlerName, ...args) => {
+  private launch = (handlerName: Types.LifecycleHandlerNames, arg: any) => {
     if (this.data.params[handlerName]) {
       try {
-        console.log('* * * HANDLERS * * *', handlerName, ...args)
-        this.data.params[handlerName](...args)
+        console.log('* * * HANDLERS * * *', handlerName, arg)
+        this.data.params[handlerName]!(arg)
       } catch (error) {}
       return true
     }
@@ -90,23 +95,23 @@ export default class RequestOperand {
     return this.primary.status === PromiseStatus.Rejected ? this.secondary!.reject : this.primary.reject
   }
 
-  public rejectWithNetworkError = (createError) => {
+  public rejectWithNetworkError = (createError: Types.CreateError) => {
     if (this.primary.status === PromiseStatus.Pending) {
       this.secondary = this.createPromise()
       
       this.secondary.promise = this.secondary.promise
         .then(data => {
-          this.launch('onSuccess', { ...data, deferred: true })
-          this.launch('onLoading', { loading: false, deferred: true })
-          this.launch('onFinally', this.data.uid)
+          this.launch(Types.LifecycleHandlerNames.onSuccess, { ...data, deferred: true })
+          this.launch(Types.LifecycleHandlerNames.onLoading, { loading: false, deferred: true })
+          this.launch(Types.LifecycleHandlerNames.onFinally, this.data.uid)
           return { ...data, deferred: true }
         }).catch(error => {
-          this.launch('onLoading', { loading: false, deferred: true })
-          if(!this.launch('onError', { ...error, isNetworkError: false })) {
-            this.launch('onFinally', this.data.uid)
+          this.launch(Types.LifecycleHandlerNames.onLoading, { loading: false, deferred: true })
+          if(!this.launch(Types.LifecycleHandlerNames.onError, { ...error, isNetworkError: false })) {
+            this.launch(Types.LifecycleHandlerNames.onFinally, this.data.uid)
             throw { ...error, isNetworkError: false }
           } else {
-            this.launch('onFinally', this.data.uid)
+            this.launch(Types.LifecycleHandlerNames.onFinally, this.data.uid)
           }
         })
 
