@@ -10,6 +10,8 @@ interface Constructor {
   request: Types.HttpRequest,
   storageAccessors: Types.StorageAccessors,
   getCacheKey: Types.GetCacheKey,
+  requestHandler: Types.RequestHandler,
+  createError: Types.CreateError,
   // requestTimeout: number,
   defaultParameters: {
     send: {

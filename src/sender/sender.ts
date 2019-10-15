@@ -114,6 +114,8 @@ export default class Sender {
       }
     }
 
+    TODO: доделать исправление типов в sender, request-operand и т.п. 
+
     this.runner()
     return ro.primaryPromise
   }

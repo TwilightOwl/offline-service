@@ -17,7 +17,7 @@ export default class OfflineService {
   private request: Types.HttpRequest;
   private storage!: Storage;
   private getCacheKey: Types.GetCacheKey;
-  private requestHandler: Types.requestHandler;
+  private requestHandler: Types.RequestHandler;
   private createError: Types.CreateError;
   private defaultParameters: Types.ReceiverDefaultParameters
 
@@ -187,7 +187,7 @@ export default class OfflineService {
       : { ...response, cached: true, expired: cacheStatus === Types.CacheStatus.Expired }
   }
 
-  public async receive(url: RequestInfo, params: Types.RequestInitWithCacheParameters): Promise<Types.ResponseWithCacheInfo | Types.CacheThenNetworkRequestStrategyResult> {
+  public async receive(url: RequestInfo, params: Types.RequestInitWithCacheParameters): Promise<Types.ResponseWithCacheInfo | Types.CacheThenNetworkRequestStrategyResult | undefined> {
     const { 
       refreshCacheStrategy,
       requestCacheStrategy,
@@ -231,7 +231,7 @@ export default class OfflineService {
         throw error
       }
     } finally {
-      isFinal && (restParams || {}).onFinally && restParams.onFinally()
+      isFinal && (restParams || {}).onFinally && restParams.onFinally!()
     }
   }
 

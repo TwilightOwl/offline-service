@@ -32,14 +32,33 @@ export enum RequestTypes {
   DataReceiveRequest = 'receive'
 }
 
-export interface ReceiverDefaultParameters {
+export interface ReceiverDefaultParameters extends ReceiverLifecycleHandlers {
   refreshCacheStrategy: RefreshCacheStrategy,
   requestCacheStrategy: RequestCacheStrategy,
   ttl: number
 }
 
-export interface SenderDefaultParameters {
-  requestTimeout: number
+export interface ReceiverResponseWithCacheInfo extends ResponseWithCacheInfo {
+  [k: string]: any
+}
+
+export type ReceiverOnSuccessHandlerArgument = ReceiverResponseWithCacheInfo | CacheThenNetworkRequestStrategyResult;
+
+export interface ReceiverOnErrorHandlerArgument {
+  isNetworkError: boolean,
+  [k: string]: any
+}
+
+export interface ReceiverOnLoadingHandlerArgument {
+  loading: boolean,
+  network: boolean
+}
+
+export interface ReceiverLifecycleHandlers {
+  onSuccess?: (arg: ReceiverOnSuccessHandlerArgument) => any,
+  onError?: (arg: ReceiverOnErrorHandlerArgument) => any,
+  onLoading?: (arg: ReceiverOnLoadingHandlerArgument) => any,
+  onFinally?: () => any
 }
 
 export interface RequestInitWithCacheParameters extends RequestInit, ReceiverDefaultParameters {
@@ -71,9 +90,11 @@ export interface CacheThenNetworkRequestResult {
   cacheStatus?: CacheStatus
 }
 
-export type RequestFunction = (url: RequestInfo, params?: RequestInit) => Promise<RequestResult>;
+export interface RequestFunctionInit extends ReceiverLifecycleHandlers, RequestInit {}
 
-export type CacheThenNetworkRequestFunction = (url: RequestInfo, params?: RequestInit) => Promise<CacheThenNetworkRequestResult>;
+export type RequestFunction = (url: RequestInfo, params?: RequestFunctionInit) => Promise<RequestResult>;
+
+export type CacheThenNetworkRequestFunction = (url: RequestInfo, params?: RequestFunctionInit) => Promise<CacheThenNetworkRequestResult>;
 
 export enum CachingResult {
   // HasBeenAdded,
@@ -98,6 +119,13 @@ export interface CachedItem {
   until: number
 }
 
+
+
+
+export interface SenderDefaultParameters extends SenderLifecycleHandlers {
+  requestTimeout: number
+}
+
 export type SenderEndpoint = RequestInfo | string
 
 export interface SenderRequestInit extends RequestInit, SenderDefaultParameters {
@@ -115,6 +143,31 @@ export interface SenderStorageItem {
   data: SenderStorageItemData
 }
 
+
+
+export interface SenderOnSuccessHandlerArgument {
+  deferred: boolean,
+  [k: string]: any
+}
+
+export interface SenderOnErrorHandlerArgument {
+  isNetworkError: boolean,
+  [k: string]: any
+}
+
+export interface SenderOnLoadingHandlerArgument {
+  loading: boolean,
+  deferred: boolean
+}
+
+export interface SenderLifecycleHandlers {
+  onSuccess?: (arg: SenderOnSuccessHandlerArgument) => any,
+  onError?: (arg: SenderOnErrorHandlerArgument) => any,
+  onLoading?: (arg: SenderOnLoadingHandlerArgument) => any,
+  onFinally?: () => any
+}
+
+
 //TODO: add methods
 export interface StorageAccessors {
   set: ((key: string, data: CachedItem | SenderStorageItem | any) => Promise<boolean>),
@@ -131,7 +184,7 @@ export interface UsedResponseRegistry {
   [requesterUID: string]: UID[]
 }
 
-export type CreateError = (arg: { name: string, message: string, status: string | number }) => any;
+export type CreateError = (arg: { name: string, message: string, status: string | number, [k: string]: any }) => any;
 
 export type ThrowNetworkError = () => void;
 
