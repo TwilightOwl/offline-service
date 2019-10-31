@@ -99,7 +99,6 @@ export type RequestFunction = (url: RequestInfo, params?: RequestFunctionInit) =
 export type CacheThenNetworkRequestFunction = (url: RequestInfo, params?: RequestFunctionInit) => Promise<CacheThenNetworkRequestResult>;
 
 export enum CachingResult {
-  // HasBeenAdded,
   HasBeenUpdated,
   NotUpdated
 }
@@ -117,7 +116,7 @@ export type HttpRequest = (url: RequestInfo, data?: RequestInit) => Promise<Resp
 
 export interface CachedItem {
   key: string,
-  data: any, // Response
+  data: any,
   until: number,
   used: number,
   after: number,
@@ -175,7 +174,7 @@ export enum LifecycleHandlerNames {
   onFinally = 'onFinally',
 }
 
-//TODO: add methods
+
 export interface StorageAccessors {
   set: ((key: string, data: CachedItem | SenderStorageItem | any) => Promise<boolean>),
   get: ((key: string) => Promise<null | CachedItem | SenderStorageItem | any>),
@@ -206,5 +205,3 @@ export type ThrowNetworkError = () => void;
 export type RequestPromise = Promise<Response>;
 
 export type RequestHandler = (arg: { throwNetworkError: ThrowNetworkError, requestPromise: RequestPromise }) => any;
-
-//TODO: export types from module

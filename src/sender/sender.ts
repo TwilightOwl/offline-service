@@ -48,9 +48,8 @@ export default class Sender {
     status: Types.SERVICE_ERROR_STATUS
   })
 
-  // должна вызываться из приложения, когда сторадж будет готов, и произойдет инициализация пользователя. 
-  // может быть вызван повторно при смене пользователя повесить декоратор инициализации, т.к. нельзя вызывать 
-  // какие-то публичные методы предварительно не загрузив старые неотправленные данные
+  // This method will be called from application when storage will be ready (user initialization is done)
+  // aiInit decorator means that we cannot call public methods without loading old unsent requests
   @aiInit
   public async restoreRequestsFromStorage() {
     const requests = (await this.storage.getRequests()) as Types.SenderStorageItem[]
@@ -70,7 +69,6 @@ export default class Sender {
     })
     this.rejectAll()
     this.runner()
-    console.log('Sender init')
   }
 
   @aiMethod
@@ -113,8 +111,6 @@ export default class Sender {
         ro.rejectWithNetworkError(this.createError)
       }
     }
-
-    // TODO: доделать исправление типов в sender, request-operand и т.п. 
 
     this.runner()
     return ro.primaryPromise

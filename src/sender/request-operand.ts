@@ -59,7 +59,6 @@ export default class RequestOperand {
   private launch = (handlerName: Types.LifecycleHandlerNames, arg: any) => {
     if (this.data.params[handlerName]) {
       try {
-        console.log('* * * HANDLERS * * *', handlerName, arg)
         this.data.params[handlerName]!(arg)
       } catch (error) {}
       return true

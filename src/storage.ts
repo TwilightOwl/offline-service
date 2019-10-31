@@ -10,7 +10,6 @@ export default class Storage {
 
   constructor(storage: Types.StorageAccessors) {
     this.storage = storage
-    // this.init()
   }
   
   @aiInit
@@ -18,7 +17,6 @@ export default class Storage {
     const data = (await this.storage.get(Types.REGISTRY_KEY)) as number[]
     this.registry = data ? data : []
     this.sequence = this.registry.length ? this.registry[this.registry.length - 1] : 0
-    console.log('Storage init')
     await this.cleanOutdatedAndUnusedData();
   }
   
@@ -123,11 +121,6 @@ export default class Storage {
     const usedResponseRegistry = (await this.storage.get(Types.USED_RESPONSES_REGISTRY_KEY) || {}) as Types.UsedResponseRegistry;
     return usedResponseRegistry;
   }
-
-  // @aiMethod
-  // public async getUsedResponseRegistry() {
-  //   return this._getUsedResponseRegistry();
-  // }
 
   @aiMethod
   private async setUsedResponseRegistry(data: Types.UsedResponseRegistry) {

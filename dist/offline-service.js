@@ -124,7 +124,6 @@ var CacheStatus;
 })(CacheStatus || (CacheStatus = {}));
 var CachingResult;
 (function (CachingResult) {
-    // HasBeenAdded,
     CachingResult[CachingResult["HasBeenUpdated"] = 0] = "HasBeenUpdated";
     CachingResult[CachingResult["NotUpdated"] = 1] = "NotUpdated";
 })(CachingResult || (CachingResult = {}));
@@ -135,14 +134,12 @@ var LifecycleHandlerNames;
     LifecycleHandlerNames["onLoading"] = "onLoading";
     LifecycleHandlerNames["onFinally"] = "onFinally";
 })(LifecycleHandlerNames || (LifecycleHandlerNames = {}));
-//TODO: export types from module
 
 var Storage = /** @class */ (function () {
     function Storage(storage) {
         this.sequence = 0;
         this.registry = [];
         this.storage = storage;
-        // this.init()
     }
     Storage.prototype.init = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -154,7 +151,6 @@ var Storage = /** @class */ (function () {
                         data = (_a.sent());
                         this.registry = data ? data : [];
                         this.sequence = this.registry.length ? this.registry[this.registry.length - 1] : 0;
-                        console.log('Storage init');
                         return [4 /*yield*/, this.cleanOutdatedAndUnusedData()];
                     case 2:
                         _a.sent();
@@ -343,10 +339,6 @@ var Storage = /** @class */ (function () {
             });
         });
     };
-    // @aiMethod
-    // public async getUsedResponseRegistry() {
-    //   return this._getUsedResponseRegistry();
-    // }
     Storage.prototype.setUsedResponseRegistry = function (data) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
@@ -703,7 +695,6 @@ var OfflineService = /** @class */ (function () {
                 : __assign({}, response, { cached: true, expired: cacheStatus === CacheStatus.Expired });
         };
         this.request = request;
-        //TODO: implement key extractor
         this.getCacheKey = getCacheKey;
         this.requestHandler = requestHandler;
         this.createError = createError;
@@ -711,11 +702,9 @@ var OfflineService = /** @class */ (function () {
         this.defaultParameters = defaultParameters;
     }
     OfflineService.prototype.init = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/];
-            });
-        });
+        return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+            return [2 /*return*/];
+        }); });
     };
     OfflineService.prototype.receive = function (url, params) {
         return __awaiter(this, void 0, void 0, function () {
@@ -879,7 +868,6 @@ var RequestOperand = /** @class */ (function () {
         this.launch = function (handlerName, arg) {
             if (_this.data.params[handlerName]) {
                 try {
-                    console.log('* * * HANDLERS * * *', handlerName, arg);
                     _this.data.params[handlerName](arg);
                 }
                 catch (error) { }
@@ -1157,9 +1145,8 @@ var Sender = /** @class */ (function () {
         this.createError = createError;
         this.defaultParameters = defaultParameters;
     }
-    // должна вызываться из приложения, когда сторадж будет готов, и произойдет инициализация пользователя. 
-    // может быть вызван повторно при смене пользователя повесить декоратор инициализации, т.к. нельзя вызывать 
-    // какие-то публичные методы предварительно не загрузив старые неотправленные данные
+    // This method will be called from application when storage will be ready (user initialization is done)
+    // aiInit decorator means that we cannot call public methods without loading old unsent requests
     Sender.prototype.restoreRequestsFromStorage = function () {
         return __awaiter(this, void 0, void 0, function () {
             var requests;
@@ -1178,7 +1165,6 @@ var Sender = /** @class */ (function () {
                         });
                         this.rejectAll();
                         this.runner();
-                        console.log('Sender init');
                         return [2 /*return*/];
                 }
             });
@@ -1215,7 +1201,6 @@ var Sender = /** @class */ (function () {
                         }
                         _g.label = 2;
                     case 2:
-                        // TODO: доделать исправление типов в sender, request-operand и т.п. 
                         this.runner();
                         return [2 /*return*/, ro.primaryPromise];
                 }

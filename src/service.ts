@@ -1,9 +1,7 @@
 import { aiWithAsyncInit, aiMethod, aiInit } from 'asynchronous-tools';
-
 import Storage from './storage'
 import Receiver from './receiver'
 import Sender from './sender'
-
 import * as Types from './types'
 
 interface Constructor {
@@ -12,7 +10,6 @@ interface Constructor {
   getCacheKey: Types.GetCacheKey,
   requestHandler: Types.RequestHandler,
   createError: Types.CreateError,
-  // requestTimeout: number,
   defaultParameters?: Types.DefaultParameters
 }
 
@@ -59,5 +56,4 @@ export default class OfflineService {
       ? await this.sender.send(url, rest as Types.SenderRequestInit) 
       : await this.receiver.receive(url, rest as Types.RequestInitWithCacheParameters)
   }
-
 }

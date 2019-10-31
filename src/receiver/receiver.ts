@@ -23,7 +23,6 @@ export default class OfflineService {
 
   constructor({ request, storage, getCacheKey, requestHandler, createError, defaultParameters }: Constructor) {
     this.request = request;
-    //TODO: implement key extractor
     this.getCacheKey = getCacheKey
     this.requestHandler = requestHandler
     this.createError = createError
@@ -32,9 +31,7 @@ export default class OfflineService {
   }
 
   @aiInit
-  public async init() {
-    // console.log('Receiver init')
-  }
+  public async init() {}
 
   private createServiceError = (message: string) => this.createError({ 
     name: Types.SERVICE_ERROR,
