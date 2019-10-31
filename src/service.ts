@@ -29,14 +29,15 @@ export default class OfflineService {
     const { 
       refreshCacheStrategy = Types.RefreshCacheStrategy.RefreshAlways, 
       requestCacheStrategy = Types.RequestCacheStrategy.CacheFallingBackToNetwork, 
-      ttl = 10000
+      ttl = 10000,
+      cleanUnusedAfter = 1000 * 60 * 60 * 24 * 3
     } = (defaultParameters || {}).receive || {}
 
     this.sender = new Sender({ storage, request, requestHandler, createError,
       defaultParameters: { requestTimeout }
     });
     this.receiver = new Receiver({ storage, request, getCacheKey, requestHandler, createError,
-      defaultParameters: { refreshCacheStrategy, requestCacheStrategy, ttl }
+      defaultParameters: { refreshCacheStrategy, requestCacheStrategy, ttl, cleanUnusedAfter }
     });
   }
 

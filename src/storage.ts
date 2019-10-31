@@ -40,16 +40,17 @@ export default class Storage {
   // These methods are for recievers (handling cache)
 
   @aiMethod
-  public async addCacheItem(key: string, data: any, ttl = 10000) {
-    return this.storage.set(Types.KEY + key, { key, data, until: Date.now() + ttl });
+  public async addCacheItem(key: string, data: any, ttl = 10000, cleanUnusedAfter = 1000 * 60 * 60 * 24 * 3) {
+    return this.storage.set(Types.RECEIVER_RESPONSE_KEY + key, { key, data, until: Date.now() + ttl, used: Date.now(), after: cleanUnusedAfter });
   }
 
   @aiMethod
   public async getCacheItem(key: string) {
-    const cached = await this.storage.get(Types.KEY + key);
+    const cached = await this.storage.get(Types.RECEIVER_RESPONSE_KEY + key);
     if (cached === null) {
       return { exist: false }
     } else {
+      await this.storage.set(Types.RECEIVER_RESPONSE_KEY + key, { ...cached, used: Date.now() });
       return { 
         exist: true, 
         expired: cached.until < Date.now(), 
@@ -59,7 +60,22 @@ export default class Storage {
   }
 
   private async cleanReceiverData() {
-    //TODO:
+    const keys = await this.storage.getAllKeys();
+    const cachedKeys = keys.filter(key => {
+      return key.substr(0, Types.RECEIVER_RESPONSE_KEY.length) === Types.RECEIVER_RESPONSE_KEY || (
+        // for backward compatibility
+        key.substr(0, Types.REGISTRY_KEY.length) !== Types.REGISTRY_KEY &&
+        key.substr(0, Types.USED_RESPONSES_REGISTRY_KEY.length) !== Types.USED_RESPONSES_REGISTRY_KEY &&
+        key.substr(0, Types.SENDER_RESPONSE_KEY.length) !== Types.SENDER_RESPONSE_KEY &&
+        key.substr(0, Types.REGISTRY_KEY.length) !== Types.REGISTRY_KEY &&
+        !key.substr(Types.KEY.length).match(/^[0-9]*$/)
+      )
+    });
+    const cachedData = await this.storage.multiGet(cachedKeys) as Types.CachedItem[];
+    const deadKeys = cachedKeys.filter((key: string, index: number) => (
+      (cachedData[index].used || 0) + (cachedData[index].after || 0) < Date.now()
+    ));
+    await this.storage.multiRemove(deadKeys);
   }
 
 

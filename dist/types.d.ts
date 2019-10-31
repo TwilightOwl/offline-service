@@ -1,4 +1,5 @@
 export declare const KEY = "_";
+export declare const RECEIVER_RESPONSE_KEY: string;
 export declare const REGISTRY_KEY: string;
 export declare const SENDER_RESPONSE_KEY: string;
 export declare const FUTURE_OBJECT_QUOTE = "~*foq*~";
@@ -28,6 +29,7 @@ export interface ReceiverDefaultParameters {
     refreshCacheStrategy: RefreshCacheStrategy;
     requestCacheStrategy: RequestCacheStrategy;
     ttl: number;
+    cleanUnusedAfter: number;
 }
 export interface DefaultParameters {
     send?: SenderDefaultParameters;
@@ -80,7 +82,7 @@ export declare enum CachingResult {
     HasBeenUpdated = 0,
     NotUpdated = 1
 }
-export declare type CachingFunction = (url: RequestInfo, params: RequestInit | undefined, data: any, cacheStatus?: CacheStatus, ttl?: number) => Promise<CachingResult>;
+export declare type CachingFunction = (url: RequestInfo, params: RequestInit | undefined, data: any, cacheStatus?: CacheStatus, ttl?: number, cleanUnusedAfter?: number) => Promise<CachingResult>;
 export interface CacheThenNetworkRequestStrategyResult {
     cached?: ResponseWithCacheInfo;
     network: Promise<ResponseWithCacheInfo>;
@@ -91,6 +93,8 @@ export interface CachedItem {
     key: string;
     data: any;
     until: number;
+    used: number;
+    after: number;
 }
 export interface SenderDefaultParameters {
     requestTimeout: number;

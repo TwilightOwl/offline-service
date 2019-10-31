@@ -1,17 +1,15 @@
-export const KEY = '_' // '__offline__'
-export const REGISTRY_KEY = KEY + 'reg' // 'registry'
-export const SENDER_RESPONSE_KEY = KEY + 's_' // 'send__'
+export const KEY = '_' 
+export const RECEIVER_RESPONSE_KEY = KEY + 'r_' 
+export const REGISTRY_KEY = KEY + 'reg' 
+export const SENDER_RESPONSE_KEY = KEY + 's_' 
 export const FUTURE_OBJECT_QUOTE = '~*foq*~'
 export const FUTURE_ID_QUOTE = '*~fiq~*'
-export const USED_RESPONSES_REGISTRY_KEY = KEY + 'urr' // 'used_responses_registry'
+export const USED_RESPONSES_REGISTRY_KEY = KEY + 'urr' 
 
 export const NETWORK_ERROR = 'NetworkError'
 export const NETWORK_ERROR_STATUS = 2
 export const SERVICE_ERROR = 'OfflineServiceError'
 export const SERVICE_ERROR_STATUS = 1
-
-// type RegistryKey1 = '__offline__registry'
-// type RegistryKey = typeof REGISTRY_KEY
 
 export enum RefreshCacheStrategy {
   RefreshWhenExpired = 'refresh-when-expired',
@@ -35,7 +33,8 @@ export enum RequestTypes {
 export interface ReceiverDefaultParameters {
   refreshCacheStrategy: RefreshCacheStrategy,
   requestCacheStrategy: RequestCacheStrategy,
-  ttl: number
+  ttl: number,
+  cleanUnusedAfter: number
 }
 
 export interface DefaultParameters {
@@ -105,7 +104,7 @@ export enum CachingResult {
   NotUpdated
 }
 
-export type CachingFunction = (url: RequestInfo, params: RequestInit | undefined, data: any, cacheStatus?: CacheStatus, ttl?: number) => Promise<CachingResult>;
+export type CachingFunction = (url: RequestInfo, params: RequestInit | undefined, data: any, cacheStatus?: CacheStatus, ttl?: number, cleanUnusedAfter?: number) => Promise<CachingResult>;
 
 export interface CacheThenNetworkRequestStrategyResult {
   cached?: ResponseWithCacheInfo,
@@ -119,11 +118,10 @@ export type HttpRequest = (url: RequestInfo, data?: RequestInit) => Promise<Resp
 export interface CachedItem {
   key: string,
   data: any, // Response
-  until: number
+  until: number,
+  used: number,
+  after: number,
 }
-
-
-
 
 export interface SenderDefaultParameters {
   requestTimeout: number

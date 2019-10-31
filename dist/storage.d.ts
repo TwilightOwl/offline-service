@@ -6,7 +6,7 @@ export default class Storage {
     constructor(storage: Types.StorageAccessors);
     init(): Promise<void>;
     private cleanOutdatedAndUnusedData;
-    addCacheItem(key: string, data: any, ttl?: number): Promise<boolean>;
+    addCacheItem(key: string, data: any, ttl?: number, cleanUnusedAfter?: number): Promise<boolean>;
     getCacheItem(key: string): Promise<{
         exist: boolean;
         expired?: undefined;

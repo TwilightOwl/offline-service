@@ -86,18 +86,17 @@ function __generator(thisArg, body) {
     }
 }
 
-var KEY = '_'; // '__offline__'
-var REGISTRY_KEY = KEY + 'reg'; // 'registry'
-var SENDER_RESPONSE_KEY = KEY + 's_'; // 'send__'
+var KEY = '_';
+var RECEIVER_RESPONSE_KEY = KEY + 'r_';
+var REGISTRY_KEY = KEY + 'reg';
+var SENDER_RESPONSE_KEY = KEY + 's_';
 var FUTURE_OBJECT_QUOTE = '~*foq*~';
 var FUTURE_ID_QUOTE = '*~fiq~*';
-var USED_RESPONSES_REGISTRY_KEY = KEY + 'urr'; // 'used_responses_registry'
+var USED_RESPONSES_REGISTRY_KEY = KEY + 'urr';
 var NETWORK_ERROR = 'NetworkError';
 var NETWORK_ERROR_STATUS = 2;
 var SERVICE_ERROR = 'OfflineServiceError';
 var SERVICE_ERROR_STATUS = 1;
-// type RegistryKey1 = '__offline__registry'
-// type RegistryKey = typeof REGISTRY_KEY
 var RefreshCacheStrategy;
 (function (RefreshCacheStrategy) {
     RefreshCacheStrategy["RefreshWhenExpired"] = "refresh-when-expired";
@@ -196,11 +195,12 @@ var Storage = /** @class */ (function () {
         });
     };
     // These methods are for recievers (handling cache)
-    Storage.prototype.addCacheItem = function (key, data, ttl) {
+    Storage.prototype.addCacheItem = function (key, data, ttl, cleanUnusedAfter) {
         if (ttl === void 0) { ttl = 10000; }
+        if (cleanUnusedAfter === void 0) { cleanUnusedAfter = 1000 * 60 * 60 * 24 * 3; }
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                return [2 /*return*/, this.storage.set(KEY + key, { key: key, data: data, until: Date.now() + ttl })];
+                return [2 /*return*/, this.storage.set(RECEIVER_RESPONSE_KEY + key, { key: key, data: data, until: Date.now() + ttl, used: Date.now(), after: cleanUnusedAfter })];
             });
         });
     };
@@ -209,28 +209,49 @@ var Storage = /** @class */ (function () {
             var cached;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.storage.get(KEY + key)];
+                    case 0: return [4 /*yield*/, this.storage.get(RECEIVER_RESPONSE_KEY + key)];
                     case 1:
                         cached = _a.sent();
-                        if (cached === null) {
-                            return [2 /*return*/, { exist: false }];
-                        }
-                        else {
-                            return [2 /*return*/, {
-                                    exist: true,
-                                    expired: cached.until < Date.now(),
-                                    data: cached.data
-                                }];
-                        }
-
+                        if (!(cached === null)) return [3 /*break*/, 2];
+                        return [2 /*return*/, { exist: false }];
+                    case 2: return [4 /*yield*/, this.storage.set(RECEIVER_RESPONSE_KEY + key, __assign({}, cached, { used: Date.now() }))];
+                    case 3:
+                        _a.sent();
+                        return [2 /*return*/, {
+                                exist: true,
+                                expired: cached.until < Date.now(),
+                                data: cached.data
+                            }];
                 }
             });
         });
     };
     Storage.prototype.cleanReceiverData = function () {
         return __awaiter(this, void 0, void 0, function () {
+            var keys, cachedKeys, cachedData, deadKeys;
             return __generator(this, function (_a) {
-                return [2 /*return*/];
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.storage.getAllKeys()];
+                    case 1:
+                        keys = _a.sent();
+                        cachedKeys = keys.filter(function (key) {
+                            return key.substr(0, RECEIVER_RESPONSE_KEY.length) === RECEIVER_RESPONSE_KEY || (
+                            // for backward compatibility
+                            key.substr(0, REGISTRY_KEY.length) !== REGISTRY_KEY &&
+                                key.substr(0, USED_RESPONSES_REGISTRY_KEY.length) !== USED_RESPONSES_REGISTRY_KEY &&
+                                key.substr(0, SENDER_RESPONSE_KEY.length) !== SENDER_RESPONSE_KEY &&
+                                key.substr(0, REGISTRY_KEY.length) !== REGISTRY_KEY &&
+                                !key.substr(KEY.length).match(/^[0-9]*$/));
+                        });
+                        return [4 /*yield*/, this.storage.multiGet(cachedKeys)];
+                    case 2:
+                        cachedData = _a.sent();
+                        deadKeys = cachedKeys.filter(function (key, index) { return ((cachedData[index].used || 0) + (cachedData[index].after || 0) < Date.now()); });
+                        return [4 /*yield*/, this.storage.multiRemove(deadKeys)];
+                    case 3:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
             });
         });
     };
@@ -419,7 +440,7 @@ var Storage = /** @class */ (function () {
     __decorate([
         aiMethod,
         __metadata("design:type", Function),
-        __metadata("design:paramtypes", [String, Object, Object]),
+        __metadata("design:paramtypes", [String, Object, Object, Object]),
         __metadata("design:returntype", Promise)
     ], Storage.prototype, "addCacheItem", null);
     __decorate([
@@ -630,7 +651,7 @@ var OfflineService = /** @class */ (function () {
             });
         }); };
         // ==================== Caching functions ====================
-        this.refreshAlwaysCaching = function (url, params, data, cacheStatus, ttl) { return __awaiter(_this, void 0, void 0, function () {
+        this.refreshAlwaysCaching = function (url, params, data, cacheStatus, ttl, cleanUnusedAfter) { return __awaiter(_this, void 0, void 0, function () {
             var cacheKey, error_5;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -643,7 +664,7 @@ var OfflineService = /** @class */ (function () {
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, this.storage.addCacheItem(cacheKey, data, ttl)];
+                        return [4 /*yield*/, this.storage.addCacheItem(cacheKey, data, ttl, cleanUnusedAfter)];
                     case 2:
                         _a.sent();
                         return [2 /*return*/, CachingResult.HasBeenUpdated];
@@ -654,7 +675,7 @@ var OfflineService = /** @class */ (function () {
                 }
             });
         }); };
-        this.refreshWhenExpiredCaching = function (url, params, data, cacheStatus, ttl) { return __awaiter(_this, void 0, void 0, function () {
+        this.refreshWhenExpiredCaching = function (url, params, data, cacheStatus, ttl, cleanUnusedAfter) { return __awaiter(_this, void 0, void 0, function () {
             var cacheKey, _a, exist, expired;
             return __generator(this, function (_b) {
                 switch (_b.label) {
@@ -669,7 +690,7 @@ var OfflineService = /** @class */ (function () {
                         _a = _b.sent(), exist = _a.exist, expired = _a.expired;
                         if (!(exist && !expired)) return [3 /*break*/, 2];
                         return [2 /*return*/, CachingResult.NotUpdated];
-                    case 2: return [4 /*yield*/, this.storage.addCacheItem(cacheKey, data, ttl)];
+                    case 2: return [4 /*yield*/, this.storage.addCacheItem(cacheKey, data, ttl, cleanUnusedAfter)];
                     case 3:
                         _b.sent();
                         return [2 /*return*/, CachingResult.HasBeenUpdated];
@@ -698,13 +719,13 @@ var OfflineService = /** @class */ (function () {
     };
     OfflineService.prototype.receive = function (url, params) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, refreshCacheStrategy, requestCacheStrategy, ttl, restParams, isFinal, _b, response, cacheStatus, error_6;
+            var _a, refreshCacheStrategy, requestCacheStrategy, ttl, cleanUnusedAfter, restParams, isFinal, _b, response, cacheStatus, error_6;
             var _c, _d;
             var _this = this;
             return __generator(this, function (_e) {
                 switch (_e.label) {
                     case 0:
-                        _a = __assign({}, this.defaultParameters, params), refreshCacheStrategy = _a.refreshCacheStrategy, requestCacheStrategy = _a.requestCacheStrategy, ttl = _a.ttl, restParams = __rest(_a, ["refreshCacheStrategy", "requestCacheStrategy", "ttl"]);
+                        _a = __assign({}, this.defaultParameters, params), refreshCacheStrategy = _a.refreshCacheStrategy, requestCacheStrategy = _a.requestCacheStrategy, ttl = _a.ttl, cleanUnusedAfter = _a.cleanUnusedAfter, restParams = __rest(_a, ["refreshCacheStrategy", "requestCacheStrategy", "ttl", "cleanUnusedAfter"]);
                         isFinal = true;
                         _e.label = 1;
                     case 1:
@@ -729,7 +750,7 @@ var OfflineService = /** @class */ (function () {
                                 _d[RefreshCacheStrategy.NoStore] = function () { },
                                 _d[RefreshCacheStrategy.RefreshAlways] = this.refreshAlwaysCaching,
                                 _d[RefreshCacheStrategy.RefreshWhenExpired] = this.refreshWhenExpiredCaching,
-                                _d)[refreshCacheStrategy] || (function () { throw 'Unknown refresh cache strategy'; }))(url, restParams, response, cacheStatus, ttl);
+                                _d)[refreshCacheStrategy] || (function () { throw 'Unknown refresh cache strategy'; }))(url, restParams, response, cacheStatus, ttl, cleanUnusedAfter);
                             return [2 /*return*/, this.mergeResponseWithCachedInfo(response, cacheStatus)];
                         }
                         catch (error) {
@@ -1231,12 +1252,12 @@ var OfflineService$1 = /** @class */ (function () {
         var request = _a.request, storageAccessors = _a.storageAccessors, getCacheKey = _a.getCacheKey, defaultParameters = _a.defaultParameters, requestHandler = _a.requestHandler, createError = _a.createError;
         var storage = this.storage = new Storage(storageAccessors);
         var _b = ((defaultParameters || {}).send || {}).requestTimeout, requestTimeout = _b === void 0 ? 10000 : _b;
-        var _c = (defaultParameters || {}).receive || {}, _d = _c.refreshCacheStrategy, refreshCacheStrategy = _d === void 0 ? RefreshCacheStrategy.RefreshAlways : _d, _e = _c.requestCacheStrategy, requestCacheStrategy = _e === void 0 ? RequestCacheStrategy.CacheFallingBackToNetwork : _e, _f = _c.ttl, ttl = _f === void 0 ? 10000 : _f;
+        var _c = (defaultParameters || {}).receive || {}, _d = _c.refreshCacheStrategy, refreshCacheStrategy = _d === void 0 ? RefreshCacheStrategy.RefreshAlways : _d, _e = _c.requestCacheStrategy, requestCacheStrategy = _e === void 0 ? RequestCacheStrategy.CacheFallingBackToNetwork : _e, _f = _c.ttl, ttl = _f === void 0 ? 10000 : _f, _g = _c.cleanUnusedAfter, cleanUnusedAfter = _g === void 0 ? 1000 * 60 * 60 * 24 * 3 : _g;
         this.sender = new Sender({ storage: storage, request: request, requestHandler: requestHandler, createError: createError,
             defaultParameters: { requestTimeout: requestTimeout }
         });
         this.receiver = new OfflineService({ storage: storage, request: request, getCacheKey: getCacheKey, requestHandler: requestHandler, createError: createError,
-            defaultParameters: { refreshCacheStrategy: refreshCacheStrategy, requestCacheStrategy: requestCacheStrategy, ttl: ttl }
+            defaultParameters: { refreshCacheStrategy: refreshCacheStrategy, requestCacheStrategy: requestCacheStrategy, ttl: ttl, cleanUnusedAfter: cleanUnusedAfter }
         });
     }
     OfflineService$1.prototype.init = function () {

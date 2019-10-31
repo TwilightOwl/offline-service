@@ -150,21 +150,21 @@ export default class OfflineService {
 
   // ==================== Caching functions ====================
 
-  private refreshAlwaysCaching: Types.CachingFunction = async (url, params, data, cacheStatus, ttl) => {
+  private refreshAlwaysCaching: Types.CachingFunction = async (url, params, data, cacheStatus, ttl, cleanUnusedAfter) => {
     if (cacheStatus !== undefined) {
       // the data has been received from cache, we sholudn't update cache data
       return Types.CachingResult.NotUpdated
     }
     const cacheKey = this.getCacheKey(url, params);
     try {
-      await this.storage.addCacheItem(cacheKey, data, ttl);
+      await this.storage.addCacheItem(cacheKey, data, ttl, cleanUnusedAfter);
       return Types.CachingResult.HasBeenUpdated
     } catch (error) {
       throw error
     }
   };
   
-  private refreshWhenExpiredCaching: Types.CachingFunction = async (url, params, data, cacheStatus, ttl) => {
+  private refreshWhenExpiredCaching: Types.CachingFunction = async (url, params, data, cacheStatus, ttl, cleanUnusedAfter) => {
     if (cacheStatus !== undefined) {
       // the data has been received from cache, we sholudn't update cache data
       return Types.CachingResult.NotUpdated
@@ -175,7 +175,7 @@ export default class OfflineService {
     if (exist && !expired) {
       return Types.CachingResult.NotUpdated
     } else {
-      await this.storage.addCacheItem(cacheKey, data, ttl);
+      await this.storage.addCacheItem(cacheKey, data, ttl, cleanUnusedAfter);
       return Types.CachingResult.HasBeenUpdated
     }
   
@@ -192,6 +192,7 @@ export default class OfflineService {
       refreshCacheStrategy,
       requestCacheStrategy,
       ttl,
+      cleanUnusedAfter,
       ...restParams 
     } = { ...this.defaultParameters, ...params };
     let isFinal = true
@@ -219,7 +220,7 @@ export default class OfflineService {
           [Types.RefreshCacheStrategy.NoStore]: () => {},
           [Types.RefreshCacheStrategy.RefreshAlways]: this.refreshAlwaysCaching,
           [Types.RefreshCacheStrategy.RefreshWhenExpired]: this.refreshWhenExpiredCaching,
-        }[refreshCacheStrategy] || (() => { throw 'Unknown refresh cache strategy' }))(url, restParams, response, cacheStatus, ttl);
+        }[refreshCacheStrategy] || (() => { throw 'Unknown refresh cache strategy' }))(url, restParams, response, cacheStatus, ttl, cleanUnusedAfter);
         
         return this.mergeResponseWithCachedInfo(response!, cacheStatus);
 
