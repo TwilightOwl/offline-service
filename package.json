@@ -1,9 +1,9 @@
 {
   "name": "offline-service",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Service for caching and queueing http requests.",
   "main": "dist/offline-service.js",
-  "types": "dist/offline-service.d.ts",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "prod": "rollup -c rollup.config.js",

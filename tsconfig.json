@@ -6,7 +6,8 @@
       "dom.iterable",
       "esnext"
     ],
-    "allowJs": true,
+    "declaration": true,
+    "declarationDir": "./dist",
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -15,9 +16,8 @@
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "isolatedModules": true,
     "noEmit": true,
-"importHelpers": true,                 /* Import emit helpers from 'tslib'. */
+    "importHelpers": true,                 /* Import emit helpers from 'tslib'. */
     "jsx": "preserve",
     "experimentalDecorators": true,        /* Enables experimental support for ES7 decorators. */
     "emitDecoratorMetadata": true          /* Enables experimental support for emitting type metadata for decorators. */
