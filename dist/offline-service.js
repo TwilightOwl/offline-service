@@ -95,8 +95,15 @@ var FUTURE_ID_QUOTE = '*~fiq~*';
 var USED_RESPONSES_REGISTRY_KEY = KEY + 'urr';
 var NETWORK_ERROR = 'NetworkError';
 var NETWORK_ERROR_STATUS = 2;
+var NETWORK_ERROR_REQUEST_HAS_FAILED = 'Network request has failed';
 var SERVICE_ERROR = 'OfflineServiceError';
 var SERVICE_ERROR_STATUS = 1;
+var SERVICE_ERROR_CACHE_RETRIEVING_FAILED = 'The requested data doesn\'t exist in the cache';
+var SERVICE_ERROR_NETWORK_THEN_CACHE_RETRIEVING_FAILED = 'The network request has been failed but cached data doesn\'t exist';
+var SERVICE_ERROR_CACHE_THEN_NETWORK_RETRIEVING_FAILED = 'The cache doesn\'t exist or expired but network request has been failed';
+var SERVICE_ERROR_UNKNOWN_REQUEST_CACHE_STRATEGY = 'Unknown request cache strategy';
+var SERVICE_ERROR_UNKNOWN_REFRESH_CACHE_STRATEGY = 'Unknown refresh cache strategy';
+var SERVICE_ERROR_CACHING_FAILED = 'Caching has been failed';
 var RefreshCacheStrategy;
 (function (RefreshCacheStrategy) {
     RefreshCacheStrategy["RefreshWhenExpired"] = "refresh-when-expired";
@@ -529,7 +536,7 @@ var OfflineService = /** @class */ (function () {
                         onError && onError(error_1 === NETWORK_ERROR
                             ? this.createError({
                                 name: NETWORK_ERROR,
-                                message: 'Network request has failed',
+                                message: NETWORK_ERROR_REQUEST_HAS_FAILED,
                                 status: NETWORK_ERROR_STATUS,
                                 isNetworkError: true
                             })
@@ -560,11 +567,10 @@ var OfflineService = /** @class */ (function () {
                             return [2 /*return*/, result];
                         }
                         else {
-                            error = this.createServiceError("The requested data doesn't exist in the cache");
+                            error = this.createServiceError(SERVICE_ERROR_CACHE_RETRIEVING_FAILED);
                             onError && onError(__assign({}, error, { isNetworkError: false }));
                             throw error;
                         }
-
                 }
             });
         }); };
@@ -587,7 +593,7 @@ var OfflineService = /** @class */ (function () {
                     return [2 /*return*/, _a.sent()];
                     case 5:
                         cacheError_1 = _a.sent();
-                        throw this.createServiceError("The network request has been failed but cached data doesn't exist");
+                        throw this.createServiceError(SERVICE_ERROR_NETWORK_THEN_CACHE_RETRIEVING_FAILED);
                     case 6: return [3 /*break*/, 7];
                     case 7: return [2 /*return*/];
                 }
@@ -608,7 +614,6 @@ var OfflineService = /** @class */ (function () {
                         else {
                             throw "The cache data is expired";
                         }
-
                     case 2:
                         cacheError_2 = _b.sent();
                         _b.label = 3;
@@ -619,7 +624,7 @@ var OfflineService = /** @class */ (function () {
                     case 5:
                         error_3 = _b.sent();
                         // without "await" catch block will not handle exception!
-                        throw this.createServiceError("The cache doesn't exist or expired but network request has been faild");
+                        throw this.createServiceError(SERVICE_ERROR_CACHE_THEN_NETWORK_RETRIEVING_FAILED);
                     case 6: return [3 /*break*/, 7];
                     case 7: return [2 /*return*/];
                 }
@@ -708,54 +713,58 @@ var OfflineService = /** @class */ (function () {
     };
     OfflineService.prototype.receive = function (url, params) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, refreshCacheStrategy, requestCacheStrategy, ttl, cleanUnusedAfter, restParams, isFinal, _b, response, cacheStatus, error_6;
-            var _c, _d;
+            var _a, refreshCacheStrategy, requestCacheStrategy, ttl, cleanUnusedAfter, _b, waitForCacheStoring, restParams, isFinal, _c, response, cacheStatus, cachingPromise, error_6, error_7;
+            var _d, _e;
             var _this = this;
-            return __generator(this, function (_e) {
-                switch (_e.label) {
+            return __generator(this, function (_f) {
+                switch (_f.label) {
                     case 0:
-                        _a = __assign({}, this.defaultParameters, params), refreshCacheStrategy = _a.refreshCacheStrategy, requestCacheStrategy = _a.requestCacheStrategy, ttl = _a.ttl, cleanUnusedAfter = _a.cleanUnusedAfter, restParams = __rest(_a, ["refreshCacheStrategy", "requestCacheStrategy", "ttl", "cleanUnusedAfter"]);
+                        _a = __assign({}, this.defaultParameters, params), refreshCacheStrategy = _a.refreshCacheStrategy, requestCacheStrategy = _a.requestCacheStrategy, ttl = _a.ttl, cleanUnusedAfter = _a.cleanUnusedAfter, _b = _a.waitForCacheStoring, waitForCacheStoring = _b === void 0 ? false : _b, restParams = __rest(_a, ["refreshCacheStrategy", "requestCacheStrategy", "ttl", "cleanUnusedAfter", "waitForCacheStoring"]);
                         isFinal = true;
-                        _e.label = 1;
+                        _f.label = 1;
                     case 1:
-                        _e.trys.push([1, 3, 4, 5]);
-                        return [4 /*yield*/, ((_c = {},
-                                _c[RequestCacheStrategy.NetworkOnly] = this.networkOnlyRequest,
-                                _c[RequestCacheStrategy.CacheOnly] = this.cacheOnlyRequest,
-                                _c[RequestCacheStrategy.NetworkFallingBackToCache] = this.networkFallingBackToCacheRequest,
-                                _c[RequestCacheStrategy.CacheFallingBackToNetwork] = this.cacheFallingBackToNetworkRequest,
-                                _c[RequestCacheStrategy.CacheThenNetwork] = this.cacheThenNetworkRequest,
-                                _c)[requestCacheStrategy] || (function () { throw _this.createServiceError('Unknown request cache strategy'); }))(url, restParams)];
+                        _f.trys.push([1, 8, 9, 10]);
+                        return [4 /*yield*/, ((_d = {},
+                                _d[RequestCacheStrategy.NetworkOnly] = this.networkOnlyRequest,
+                                _d[RequestCacheStrategy.CacheOnly] = this.cacheOnlyRequest,
+                                _d[RequestCacheStrategy.NetworkFallingBackToCache] = this.networkFallingBackToCacheRequest,
+                                _d[RequestCacheStrategy.CacheFallingBackToNetwork] = this.cacheFallingBackToNetworkRequest,
+                                _d[RequestCacheStrategy.CacheThenNetwork] = this.cacheThenNetworkRequest,
+                                _d)[requestCacheStrategy] || (function () { throw _this.createServiceError(SERVICE_ERROR_UNKNOWN_REQUEST_CACHE_STRATEGY); }))(url, restParams)];
                     case 2:
-                        _b = _e.sent(), response = _b.response, cacheStatus = _b.cacheStatus;
+                        _c = _f.sent(), response = _c.response, cacheStatus = _c.cacheStatus;
                         if (requestCacheStrategy === RequestCacheStrategy.CacheThenNetwork) {
                             isFinal = false;
                             return [2 /*return*/, __assign({}, response ? { cached: this.mergeResponseWithCachedInfo(response, cacheStatus) } : {}, { network: this.receive(url, __assign({}, params, { requestCacheStrategy: RequestCacheStrategy.NetworkOnly })) })];
                         }
-                        try {
-                            // We have not to wait cache update and we don't need the result of caching
-                            // const cacheResult = await ({
-                            ((_d = {},
-                                _d[RefreshCacheStrategy.NoStore] = function () { },
-                                _d[RefreshCacheStrategy.RefreshAlways] = this.refreshAlwaysCaching,
-                                _d[RefreshCacheStrategy.RefreshWhenExpired] = this.refreshWhenExpiredCaching,
-                                _d)[refreshCacheStrategy] || (function () { throw 'Unknown refresh cache strategy'; }))(url, restParams, response, cacheStatus, ttl, cleanUnusedAfter);
-                            return [2 /*return*/, this.mergeResponseWithCachedInfo(response, cacheStatus)];
-                        }
-                        catch (error) {
-                            throw this.createServiceError('Caching has been failed');
-                        }
-                        return [3 /*break*/, 5];
+                        _f.label = 3;
                     case 3:
-                        error_6 = _e.sent();
-                        if (!(restParams || {}).onError) {
-                            throw error_6;
-                        }
-                        return [3 /*break*/, 5];
+                        _f.trys.push([3, 6, , 7]);
+                        cachingPromise = ((_e = {},
+                            _e[RefreshCacheStrategy.NoStore] = function () { },
+                            _e[RefreshCacheStrategy.RefreshAlways] = this.refreshAlwaysCaching,
+                            _e[RefreshCacheStrategy.RefreshWhenExpired] = this.refreshWhenExpiredCaching,
+                            _e)[refreshCacheStrategy] || (function () { throw SERVICE_ERROR_UNKNOWN_REFRESH_CACHE_STRATEGY; }))(url, restParams, response, cacheStatus, ttl, cleanUnusedAfter);
+                        if (!waitForCacheStoring) return [3 /*break*/, 5];
+                        return [4 /*yield*/, cachingPromise];
                     case 4:
+                        _f.sent();
+                        _f.label = 5;
+                    case 5: return [2 /*return*/, this.mergeResponseWithCachedInfo(response, cacheStatus)];
+                    case 6:
+                        error_6 = _f.sent();
+                        throw this.createServiceError(SERVICE_ERROR_CACHING_FAILED);
+                    case 7: return [3 /*break*/, 10];
+                    case 8:
+                        error_7 = _f.sent();
+                        if (!(restParams || {}).onError) {
+                            throw error_7;
+                        }
+                        return [3 /*break*/, 10];
+                    case 9:
                         isFinal && (restParams || {}).onFinally && restParams.onFinally();
                         return [7 /*endfinally*/];
-                    case 5: return [2 /*return*/];
+                    case 10: return [2 /*return*/];
                 }
             });
         });
@@ -919,7 +928,7 @@ var RequestOperand = /** @class */ (function () {
                 });
                 _this.primary.reject(createError({
                     name: NETWORK_ERROR,
-                    message: 'Network request has failed',
+                    message: NETWORK_ERROR_REQUEST_HAS_FAILED,
                     status: NETWORK_ERROR_STATUS,
                     promise: _this.secondary.promise
                 }));

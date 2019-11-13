@@ -17,7 +17,7 @@ export default class Storage {
         data: any;
     }>;
     private cleanReceiverData;
-    readonly newID: number;
+    private readonly newID;
     addRequest(data: any): Promise<number>;
     getRequests(): Promise<(Types.CachedItem | Types.SenderStorageItem | null)[]>;
     deleteRequest(id: number): Promise<void>;
@@ -33,3 +33,9 @@ export default class Storage {
     getResolvedResponses(uid: string): Promise<Types.ResolvedResponses[]>;
     private cleanSenderData;
 }
+declare type Interface<T> = {
+    [P in keyof T]: T[P];
+};
+export interface IStorage extends Interface<Storage> {
+}
+export {};

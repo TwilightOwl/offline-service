@@ -79,7 +79,7 @@ export default class Storage {
 
   // These methods are for senders (handling deferred requests)
 
-  get newID() {
+  private get newID() {
     return ++this.sequence
   }
 
@@ -163,3 +163,9 @@ export default class Storage {
   }
 
 }
+
+type Interface<T> = {
+  [P in keyof T]: T[P]
+}
+// exclude private proerties from Storage class
+export interface IStorage extends Interface<Storage> {};

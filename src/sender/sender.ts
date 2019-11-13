@@ -1,6 +1,6 @@
 import { aiWithAsyncInit, aiMethod, aiInit } from 'asynchronous-tools';
 
-import Storage from '../storage'
+import { IStorage } from '../storage'
 import RequestOperand from './request-operand'
 import { decoder, getDecodedIDs } from './encoder';
 import * as Types from '../types';
@@ -12,7 +12,7 @@ interface Deferred {
 
 interface Constructor {
   request: Types.HttpRequest,
-  storage: Storage,
+  storage: IStorage,
   requestHandler: Types.RequestHandler,
   createError: Types.CreateError,
   defaultParameters: Types.SenderRequestInit

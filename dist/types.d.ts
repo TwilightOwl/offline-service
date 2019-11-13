@@ -7,8 +7,15 @@ export declare const FUTURE_ID_QUOTE = "*~fiq~*";
 export declare const USED_RESPONSES_REGISTRY_KEY: string;
 export declare const NETWORK_ERROR = "NetworkError";
 export declare const NETWORK_ERROR_STATUS = 2;
+export declare const NETWORK_ERROR_REQUEST_HAS_FAILED = "Network request has failed";
 export declare const SERVICE_ERROR = "OfflineServiceError";
 export declare const SERVICE_ERROR_STATUS = 1;
+export declare const SERVICE_ERROR_CACHE_RETRIEVING_FAILED = "The requested data doesn't exist in the cache";
+export declare const SERVICE_ERROR_NETWORK_THEN_CACHE_RETRIEVING_FAILED = "The network request has been failed but cached data doesn't exist";
+export declare const SERVICE_ERROR_CACHE_THEN_NETWORK_RETRIEVING_FAILED = "The cache doesn't exist or expired but network request has been failed";
+export declare const SERVICE_ERROR_UNKNOWN_REQUEST_CACHE_STRATEGY = "Unknown request cache strategy";
+export declare const SERVICE_ERROR_UNKNOWN_REFRESH_CACHE_STRATEGY = "Unknown refresh cache strategy";
+export declare const SERVICE_ERROR_CACHING_FAILED = "Caching has been failed";
 export declare enum RefreshCacheStrategy {
     RefreshWhenExpired = "refresh-when-expired",
     RefreshAlways = "refresh-always",
@@ -30,6 +37,7 @@ export interface ReceiverDefaultParameters {
     requestCacheStrategy: RequestCacheStrategy;
     ttl: number;
     cleanUnusedAfter: number;
+    waitForCacheStoring?: boolean;
 }
 export interface DefaultParameters {
     send?: SenderDefaultParameters;

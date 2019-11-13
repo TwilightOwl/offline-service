@@ -1,5 +1,5 @@
 import { aiWithAsyncInit, aiMethod, aiInit } from 'asynchronous-tools';
-import Storage from './storage'
+import Storage, { IStorage } from './storage'
 import Receiver from './receiver'
 import Sender from './sender'
 import * as Types from './types'
@@ -16,7 +16,7 @@ interface Constructor {
 @aiWithAsyncInit
 export default class OfflineService {
 
-  private storage: Storage
+  private storage: IStorage
   private sender: Sender
   private receiver: Receiver
 

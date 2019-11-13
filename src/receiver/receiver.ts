@@ -1,11 +1,11 @@
 import { aiWithAsyncInit, aiMethod, aiInit } from 'asynchronous-tools';
 
-import Storage from '../storage';
+import { IStorage } from '../storage';
 import * as Types from '../types';
 
 interface Constructor {
   request: Types.HttpRequest,
-  storage: Storage,
+  storage: IStorage,
   getCacheKey: Types.GetCacheKey,
   requestHandler: Types.RequestHandler,
   createError: Types.CreateError,
@@ -15,7 +15,7 @@ interface Constructor {
 @aiWithAsyncInit
 export default class OfflineService {
   private request: Types.HttpRequest;
-  private storage!: Storage;
+  private storage!: IStorage;
   private getCacheKey: Types.GetCacheKey;
   private requestHandler: Types.RequestHandler;
   private createError: Types.CreateError;
@@ -63,7 +63,7 @@ export default class OfflineService {
       onError && onError(error === Types.NETWORK_ERROR 
         ? this.createError({ 
           name: Types.NETWORK_ERROR,
-          message: 'Network request has failed',
+          message: Types.NETWORK_ERROR_REQUEST_HAS_FAILED,
           status: Types.NETWORK_ERROR_STATUS,
           isNetworkError: true
         })
@@ -96,7 +96,7 @@ export default class OfflineService {
       onSuccess && onSuccess(this.mergeResponseWithCachedInfo(result.response, result.cacheStatus))
       return result
     } else {
-      const error = this.createServiceError("The requested data doesn't exist in the cache")
+      const error = this.createServiceError(Types.SERVICE_ERROR_CACHE_RETRIEVING_FAILED)
       onError && onError({ ...error, isNetworkError: false })
       throw error
     }
@@ -111,7 +111,7 @@ export default class OfflineService {
         // without "await" catch block will not handle exception!
         return await this.cacheOnlyRequest(url, params);
       } catch (cacheError) {
-        throw this.createServiceError("The network request has been failed but cached data doesn't exist")
+        throw this.createServiceError(Types.SERVICE_ERROR_NETWORK_THEN_CACHE_RETRIEVING_FAILED)
       }
     }
   };
@@ -129,7 +129,7 @@ export default class OfflineService {
         return await this.networkOnlyRequest(url, params);
       } catch (error) {
         // without "await" catch block will not handle exception!
-        throw this.createServiceError("The cache doesn't exist or expired but network request has been faild")
+        throw this.createServiceError(Types.SERVICE_ERROR_CACHE_THEN_NETWORK_RETRIEVING_FAILED)
       }
     }
   }
@@ -190,6 +190,7 @@ export default class OfflineService {
       requestCacheStrategy,
       ttl,
       cleanUnusedAfter,
+      waitForCacheStoring = false,
       ...restParams 
     } = { ...this.defaultParameters, ...params };
     let isFinal = true
@@ -200,7 +201,7 @@ export default class OfflineService {
         [Types.RequestCacheStrategy.NetworkFallingBackToCache]: this.networkFallingBackToCacheRequest,
         [Types.RequestCacheStrategy.CacheFallingBackToNetwork]: this.cacheFallingBackToNetworkRequest,
         [Types.RequestCacheStrategy.CacheThenNetwork]: this.cacheThenNetworkRequest,
-      }[requestCacheStrategy] || (() => { throw this.createServiceError('Unknown request cache strategy') }))(url, restParams);
+      }[requestCacheStrategy] || (() => { throw this.createServiceError(Types.SERVICE_ERROR_UNKNOWN_REQUEST_CACHE_STRATEGY) }))(url, restParams);
       
       if (requestCacheStrategy === Types.RequestCacheStrategy.CacheThenNetwork) {
         isFinal = false
@@ -213,16 +214,20 @@ export default class OfflineService {
       try {
         // We have not to wait cache update and we don't need the result of caching
         // const cacheResult = await ({
-        ({
+        const cachingPromise = ({
           [Types.RefreshCacheStrategy.NoStore]: () => {},
           [Types.RefreshCacheStrategy.RefreshAlways]: this.refreshAlwaysCaching,
           [Types.RefreshCacheStrategy.RefreshWhenExpired]: this.refreshWhenExpiredCaching,
-        }[refreshCacheStrategy] || (() => { throw 'Unknown refresh cache strategy' }))(url, restParams, response, cacheStatus, ttl, cleanUnusedAfter);
+        }[refreshCacheStrategy] || (() => { throw Types.SERVICE_ERROR_UNKNOWN_REFRESH_CACHE_STRATEGY }))(url, restParams, response, cacheStatus, ttl, cleanUnusedAfter);
         
+        if (waitForCacheStoring) {
+          await cachingPromise
+        }
+
         return this.mergeResponseWithCachedInfo(response!, cacheStatus);
 
       } catch (error) {
-        throw this.createServiceError('Caching has been failed')
+        throw this.createServiceError(Types.SERVICE_ERROR_CACHING_FAILED)
       }
     } catch (error) {
       if (!(restParams || {}).onError) {

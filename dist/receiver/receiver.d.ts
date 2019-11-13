@@ -1,8 +1,8 @@
-import Storage from '../storage';
+import { IStorage } from '../storage';
 import * as Types from '../types';
 interface Constructor {
     request: Types.HttpRequest;
-    storage: Storage;
+    storage: IStorage;
     getCacheKey: Types.GetCacheKey;
     requestHandler: Types.RequestHandler;
     createError: Types.CreateError;

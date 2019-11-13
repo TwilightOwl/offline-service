@@ -117,7 +117,7 @@ export default class RequestOperand {
       this.primary.reject(
         createError({
           name: Types.NETWORK_ERROR,
-          message: 'Network request has failed',
+          message: Types.NETWORK_ERROR_REQUEST_HAS_FAILED,
           status: Types.NETWORK_ERROR_STATUS,
           promise: this.secondary.promise
         })

@@ -8,8 +8,22 @@ export const USED_RESPONSES_REGISTRY_KEY = KEY + 'urr'
 
 export const NETWORK_ERROR = 'NetworkError'
 export const NETWORK_ERROR_STATUS = 2
+export const NETWORK_ERROR_REQUEST_HAS_FAILED = 'Network request has failed'
 export const SERVICE_ERROR = 'OfflineServiceError'
 export const SERVICE_ERROR_STATUS = 1
+export const SERVICE_ERROR_CACHE_RETRIEVING_FAILED =
+  'The requested data doesn\'t exist in the cache'
+export const SERVICE_ERROR_NETWORK_THEN_CACHE_RETRIEVING_FAILED = 
+  'The network request has been failed but cached data doesn\'t exist'
+export const SERVICE_ERROR_CACHE_THEN_NETWORK_RETRIEVING_FAILED = 
+  'The cache doesn\'t exist or expired but network request has been failed'
+export const SERVICE_ERROR_UNKNOWN_REQUEST_CACHE_STRATEGY = 
+  'Unknown request cache strategy'
+export const SERVICE_ERROR_UNKNOWN_REFRESH_CACHE_STRATEGY =
+  'Unknown refresh cache strategy'
+export const SERVICE_ERROR_CACHING_FAILED =
+  'Caching has been failed'
+
 
 export enum RefreshCacheStrategy {
   RefreshWhenExpired = 'refresh-when-expired',
@@ -34,7 +48,8 @@ export interface ReceiverDefaultParameters {
   refreshCacheStrategy: RefreshCacheStrategy,
   requestCacheStrategy: RequestCacheStrategy,
   ttl: number,
-  cleanUnusedAfter: number
+  cleanUnusedAfter: number,
+  waitForCacheStoring?: boolean
 }
 
 export interface DefaultParameters {
