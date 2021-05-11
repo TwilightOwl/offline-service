@@ -43,9 +43,9 @@ export interface DefaultParameters {
     send?: SenderDefaultParameters;
     receive?: ReceiverDefaultParameters;
 }
-export interface ReceiverResponseWithCacheInfo extends ResponseWithCacheInfo {
+declare type ReceiverResponseWithCacheInfo = ResponseWithCacheInfo & {
     [k: string]: any;
-}
+};
 export declare type ReceiverOnSuccessHandlerArgument = ReceiverResponseWithCacheInfo | CacheThenNetworkRequestStrategyResult;
 export interface ReceiverOnErrorHandlerArgument {
     isNetworkError: boolean;
@@ -174,3 +174,4 @@ export declare type RequestHandler = (arg: {
     throwNetworkError: ThrowNetworkError;
     requestPromise: RequestPromise;
 }) => any;
+export {};

@@ -57,9 +57,9 @@ export interface DefaultParameters {
   receive?: ReceiverDefaultParameters
 }
 
-export interface ReceiverResponseWithCacheInfo extends ResponseWithCacheInfo {
-  [k: string]: any
-}
+type ReceiverResponseWithCacheInfo = ResponseWithCacheInfo & {
+  [k: string]: any;
+};
 
 export type ReceiverOnSuccessHandlerArgument = ReceiverResponseWithCacheInfo | CacheThenNetworkRequestStrategyResult;
 
