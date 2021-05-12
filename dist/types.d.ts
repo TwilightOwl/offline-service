@@ -43,10 +43,10 @@ export interface DefaultParameters {
     send?: SenderDefaultParameters;
     receive?: ReceiverDefaultParameters;
 }
-export interface ReceiverResponseWithCacheInfo extends ResponseWithCacheInfo {
-    [k: string]: any;
-}
-export declare type ReceiverOnSuccessHandlerArgument = ReceiverResponseWithCacheInfo | CacheThenNetworkRequestStrategyResult;
+declare type ReceiverResponseWithCacheInfo = ResponseWithCacheInfo & {
+    body: any;
+};
+export declare type ReceiverOnSuccessHandlerArgument = ReceiverResponseWithCacheInfo;
 export interface ReceiverOnErrorHandlerArgument {
     isNetworkError: boolean;
     [k: string]: any;
@@ -62,7 +62,7 @@ export interface ReceiverLifecycleHandlers {
     onFinally?: () => any;
 }
 export interface RequestInitWithCacheParameters extends RequestInit, ReceiverDefaultParameters, ReceiverLifecycleHandlers {
-    requestType?: RequestTypes;
+    requestType?: typeof RequestTypes["DataReceiveRequest"];
 }
 export declare enum CacheStatus {
     DoesNotExist = 0,
@@ -109,7 +109,7 @@ export interface SenderDefaultParameters {
 }
 export declare type SenderEndpoint = RequestInfo | string;
 export interface SenderRequestInit extends RequestInit, SenderDefaultParameters, SenderLifecycleHandlers {
-    requestType?: RequestTypes;
+    requestType?: typeof RequestTypes["DataSendRequest"];
 }
 export interface SenderStorageItemData {
     url: SenderEndpoint;
@@ -174,3 +174,4 @@ export declare type RequestHandler = (arg: {
     throwNetworkError: ThrowNetworkError;
     requestPromise: RequestPromise;
 }) => any;
+export {};
