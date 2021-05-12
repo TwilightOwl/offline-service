@@ -58,10 +58,10 @@ export interface DefaultParameters {
 }
 
 type ReceiverResponseWithCacheInfo = ResponseWithCacheInfo & {
-  [k: string]: any;
+  body: any;
 };
 
-export type ReceiverOnSuccessHandlerArgument = ReceiverResponseWithCacheInfo | CacheThenNetworkRequestStrategyResult;
+export type ReceiverOnSuccessHandlerArgument = ReceiverResponseWithCacheInfo;
 
 export interface ReceiverOnErrorHandlerArgument {
   isNetworkError: boolean,
@@ -80,8 +80,11 @@ export interface ReceiverLifecycleHandlers {
   onFinally?: () => any
 }
 
-export interface RequestInitWithCacheParameters extends RequestInit, ReceiverDefaultParameters, ReceiverLifecycleHandlers {
-  requestType?: RequestTypes
+export interface RequestInitWithCacheParameters
+  extends RequestInit,
+    ReceiverDefaultParameters,
+    ReceiverLifecycleHandlers {
+  requestType?: typeof RequestTypes["DataReceiveRequest"];
 }
 
 export enum CacheStatus {
@@ -143,8 +146,11 @@ export interface SenderDefaultParameters {
 
 export type SenderEndpoint = RequestInfo | string
 
-export interface SenderRequestInit extends RequestInit, SenderDefaultParameters, SenderLifecycleHandlers {
-  requestType?: RequestTypes
+export interface SenderRequestInit
+  extends RequestInit,
+    SenderDefaultParameters,
+    SenderLifecycleHandlers {
+  requestType?: typeof RequestTypes["DataSendRequest"];
 }
 
 export interface SenderStorageItemData {
