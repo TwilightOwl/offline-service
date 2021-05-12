@@ -1,6 +1,6 @@
 {
   "name": "offline-service",
-  "version": "0.1.4",
+  "version": "1.0.0",
   "description": "Service for caching and queueing http requests.",
   "main": "dist/offline-service.js",
   "types": "dist/index.d.ts",
